@@ -2,7 +2,7 @@
 // cloudinary.js — GESA UMaT
 // Cloud name:    df9ns044o
 // Upload preset: gesa-app  (unsigned)
-// ─────────────────────────────────s────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 const CLOUD_NAME    = 'df9ns044o';
 const UPLOAD_PRESET = 'gesa-app';
@@ -11,13 +11,15 @@ const UPLOAD_PRESET = 'gesa-app';
 export async function uploadFile(fileUri, folder = 'gesa') {
   const isPDF    = fileUri.toLowerCase().endsWith('.pdf') || fileUri.toLowerCase().includes('.pdf');
   const fileName = fileUri.split('/').pop();
+  const publicId = fileName.replace(/\.[^/.]+$/, ''); // strip extension for public_id
   const mimeType = isPDF ? 'application/pdf' : 'image/jpeg';
   const resType  = isPDF ? 'raw' : 'image';
 
   const formData = new FormData();
-  formData.append('file',           { uri: fileUri, type: mimeType, name: fileName });
-  formData.append('upload_preset',  UPLOAD_PRESET);
-  formData.append('folder',         folder);
+  formData.append('file',          { uri: fileUri, type: mimeType, name: fileName });
+  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('folder',        folder);
+  formData.append('public_id',     publicId);
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`,
