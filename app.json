@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "GESA UMaT",
+    "slug": "gesa-umat",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#07050f"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gesa.umat"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#07050f"
+      },
+      "package": "com.gesa.umat"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#7c3aed"
+        }
+      ],
+      "expo-web-browser"
+    ]
+  }
+}

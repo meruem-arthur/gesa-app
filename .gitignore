@@ -1,0 +1,7 @@
+node_modules/
+.expo/
+serviceAccountKey.json
+firebase.js
+cloudinary.js
+.env
+.env.local
