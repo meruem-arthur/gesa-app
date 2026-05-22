@@ -9,18 +9,18 @@ const UPLOAD_PRESET = 'gesa-app';
 
 // ─── uploadFile — PDFs (learning materials & past questions) ──────────────────
 export async function uploadFile(fileUri, folder = 'gesa') {
-  const isPDF    = fileUri.toLowerCase().endsWith('.pdf') || fileUri.toLowerCase().includes('.pdf');
-  const fileName = fileUri.split('/').pop();
-  const mimeType = isPDF ? 'application/pdf' : 'image/jpeg';
-  const resType  = isPDF ? 'raw' : 'image';
+  const fileName = fileUri.split('/').pop() || 'upload.pdf';
 
   const formData = new FormData();
-  formData.append('file',           { uri: fileUri, type: mimeType, name: fileName });
-  formData.append('upload_preset',  UPLOAD_PRESET);
-  formData.append('folder',         folder);
+  formData.append('file',          { uri: fileUri, type: 'application/pdf', name: fileName });
+  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('folder',        folder);
+  formData.append('resource_type', 'image');
+  formData.append('format',        'pdf');
+  formData.append('access_mode',   'public');
 
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`,
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
     { method: 'POST', body: formData }
   );
 
@@ -41,7 +41,6 @@ export async function uploadPhoto(fileUri, folder = 'gesa/photos') {
   formData.append('file',          { uri: fileUri, type: 'image/jpeg', name: fileName });
   formData.append('upload_preset', UPLOAD_PRESET);
   formData.append('folder',        folder);
-  // NOTE: transformation is NOT allowed with unsigned presets — omitted intentionally
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
