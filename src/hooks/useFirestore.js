@@ -226,16 +226,15 @@ export async function deletePastQuestion(id) { return deleteDoc(doc(db, 'pastQue
 // ─── EXAMS ────────────────────────────────────────────────────────────────────
 export async function addExam(data) {
   return addDoc(collection(db, 'exams'), {
-    courseCode: data.courseCode,
-    courseName: data.courseName || '',
-    date: Timestamp.fromDate(new Date(data.date)),
-    venue: data.venue || '',
-    level: Number(data.level) || 0,
+    title:     data.title,
+    startDate: Timestamp.fromDate(new Date(data.startDate)),
+    endDate:   data.endDate ? Timestamp.fromDate(new Date(data.endDate)) : null,
+    note:      data.note || '',
   });
 }
 export async function deleteExam(id) { return deleteDoc(doc(db, 'exams', id)); }
 export async function getAllExams() {
-  const q = query(collection(db, 'exams'), orderBy('date', 'asc'));
+  const q = query(collection(db, 'exams'), orderBy('startDate', 'asc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }

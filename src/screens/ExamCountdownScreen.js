@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Rect, Path, Line, Ellipse } from 'react-native-svg';
 import { getDocs, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { Loader, ErrorState, EmptyState } from '../components/SharedComponents';
 
 const S = SPACING;
+
+const QUOTES = [
+  "The secret of getting ahead is getting started. — Mark Twain",
+  "Push yourself because no one else is going to do it for you.",
+  "Study hard in silence. Let success make the noise.",
+  "Don't watch the clock; do what it does. Keep going.",
+  "Your future is created by what you do today, not tomorrow.",
+  "The expert in anything was once a beginner.",
+  "Success is the sum of small efforts repeated day in and day out.",
+  "Believe you can and you're halfway there.",
+];
 
 function toDate(val) {
   if (!val) return new Date();
@@ -23,17 +35,60 @@ function useNow() {
   return now;
 }
 
-function urgency(days) {
-  if (days < 0)   return { text: 'Passed',  color: COLORS.dim   };
-  if (days === 0) return { text: 'TODAY!',  color: COLORS.red   };
-  if (days <= 3)  return { text: 'Urgent',  color: '#f87171'    };
-  if (days <= 7)  return { text: 'Soon',    color: '#f59e0b'    };
-  return            { text: 'Upcoming', color: COLORS.green  };
+// Simple SVG illustration: person studying at a desk
+function StudyingIllustration() {
+  return (
+    <Svg width={220} height={180} viewBox="0 0 220 180">
+      {/* Desk */}
+      <Rect x={30} y={120} width={160} height={10} rx={3} fill="#3b2f6e" />
+      <Rect x={45} y={130} width={8} height={40} rx={3} fill="#2e2458" />
+      <Rect x={167} y={130} width={8} height={40} rx={3} fill="#2e2458" />
+
+      {/* Books stacked on left */}
+      <Rect x={38} y={100} width={28} height={20} rx={2} fill="#7c3aed" />
+      <Rect x={40} y={96} width={24} height={20} rx={2} fill="#a78bfa" />
+      <Rect x={42} y={92} width={20} height={20} rx={2} fill="#6d28d9" />
+
+      {/* Open book / laptop in front of person */}
+      <Rect x={90} y={106} width={60} height={14} rx={2} fill="#1e1b4b" />
+      <Rect x={92} y={108} width={27} height={10} rx={1} fill="#312e81" />
+      <Rect x={121} y={108} width={27} height={10} rx={1} fill="#312e81" />
+      {/* book spine */}
+      <Rect x={119} y={107} width={2} height={12} rx={1} fill="#4338ca" />
+
+      {/* Body */}
+      <Rect x={95} y={68} width={30} height={38} rx={8} fill="#4f46e5" />
+
+      {/* Head */}
+      <Circle cx={110} cy={56} r={16} fill="#fcd34d" />
+      {/* Hair */}
+      <Path d="M94 52 Q110 36 126 52" fill="#1c1048" />
+      {/* Eyes */}
+      <Circle cx={104} cy={56} r={2} fill="#1c1048" />
+      <Circle cx={116} cy={56} r={2} fill="#1c1048" />
+      {/* Mouth — small smile */}
+      <Path d="M106 63 Q110 67 114 63" stroke="#92400e" strokeWidth={1.5} fill="none" strokeLinecap="round" />
+
+      {/* Left arm reaching to book */}
+      <Path d="M96 78 Q78 90 88 112" stroke="#4f46e5" strokeWidth={9} strokeLinecap="round" fill="none" />
+      {/* Right arm */}
+      <Path d="M124 78 Q138 90 130 112" stroke="#4f46e5" strokeWidth={9} strokeLinecap="round" fill="none" />
+
+      {/* Pencil in right hand */}
+      <Rect x={129} y={106} width={4} height={18} rx={1} fill="#fbbf24" transform="rotate(-20 131 115)" />
+      <Path d="M127 122 L131 128 L135 122" fill="#f87171" transform="rotate(-20 131 125)" />
+
+      {/* Stars / sparkles top right */}
+      <Path d="M170 20 L172 26 L178 24 L172 28 L170 34 L168 28 L162 24 L168 26 Z" fill="#fbbf24" opacity={0.7} />
+      <Path d="M190 40 L191 44 L195 42 L191 46 L190 50 L189 46 L185 42 L189 44 Z" fill="#a78bfa" opacity={0.6} />
+      <Circle cx={155} cy={35} r={2} fill="#fbbf24" opacity={0.5} />
+    </Svg>
+  );
 }
 
 function Ticker({ examDate, now }) {
   const diff = examDate - now;
-  if (diff <= 0) return <Text style={tk.done}>Exam has passed</Text>;
+  if (diff <= 0) return <Text style={tk.done}>Exam period has begun</Text>;
 
   const days = Math.floor(diff / 86400000);
   const hrs  = Math.floor((diff % 86400000) / 3600000);
@@ -57,23 +112,34 @@ export default function ExamCountdownScreen() {
   const [exams,   setExams]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
+  const [quote]               = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   const now = useNow();
 
   useEffect(() => {
     (async () => {
       try {
-        const snap = await getDocs(query(collection(db, 'exams'), orderBy('date', 'asc')));
+        const snap = await getDocs(query(collection(db, 'exams'), orderBy('startDate', 'asc')));
         setExams(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (e) { setError(e.message); }
       finally { setLoading(false); }
     })();
   }, []);
 
-  const upcoming = exams.filter(e => toDate(e.date) >= now);
-  const passed   = exams.filter(e => toDate(e.date) < now);
+  // Find the next / active exam period
+  const nextExam = exams.find(e => toDate(e.startDate) >= now)
+    ?? (exams.length > 0 ? exams[exams.length - 1] : null);
+
+  const hasExams = exams.length > 0;
+
+  function fmtDate(val) {
+    return toDate(val).toLocaleDateString('en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+  }
 
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+      {/* ── 1. Hero ── */}
       <View style={styles.hero}>
         <View style={styles.badge}>
           <Ionicons name="alarm-outline" size={11} color={COLORS.gold3} />
@@ -85,93 +151,73 @@ export default function ExamCountdownScreen() {
 
       {loading && <Loader />}
       {error   && <ErrorState message={error} />}
-      {!loading && !error && exams.length === 0 && (
-        <EmptyState icon="📅" message="No exams scheduled yet. Check back soon." />
-      )}
 
-      {upcoming.length > 0 && (
+      {!loading && !error && (
         <>
-          <Text style={styles.sLabel}>UPCOMING</Text>
-          {upcoming.map(exam => {
-            const d    = toDate(exam.date);
-            const days = Math.floor((d - now) / 86400000);
-            const urg  = urgency(days);
-            return (
-              <View key={exam.id} style={styles.card}>
-                <View style={styles.cardTop}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.code}>{exam.courseCode}</Text>
-                    <Text style={styles.name}>{exam.courseName}</Text>
-                  </View>
-                  <View style={[styles.urgBadge, { backgroundColor: urg.color + '22', borderColor: urg.color + '55' }]}>
-                    <Text style={[styles.urgTx, { color: urg.color }]}>{urg.text}</Text>
-                  </View>
-                </View>
-                <View style={styles.metaRow}>
-                  <Ionicons name="calendar-outline" size={12} color={COLORS.muted} />
-                  <Text style={styles.metaTx}>
-                    {d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </Text>
-                </View>
-                <View style={styles.metaRow}>
-                  <Ionicons name="time-outline" size={12} color={COLORS.muted} />
-                  <Text style={styles.metaTx}>
-                    {d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                    {exam.venue ? `  ·  ${exam.venue}` : ''}
-                  </Text>
-                </View>
-                <Ticker examDate={d} now={now} />
-              </View>
-            );
-          })}
-        </>
-      )}
+          {/* ── 2. SVG Illustration ── */}
+          <View style={styles.illustrationWrap}>
+            <StudyingIllustration />
+          </View>
 
-      {passed.length > 0 && (
-        <>
-          <Text style={styles.sLabel}>PAST EXAMS</Text>
-          {passed.map(exam => (
-            <View key={exam.id} style={[styles.card, { opacity: 0.5 }]}>
-              <View style={styles.cardTop}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.code, { color: COLORS.dim }]}>{exam.courseCode}</Text>
-                  <Text style={[styles.name, { color: COLORS.dim }]}>{exam.courseName}</Text>
-                </View>
-                <View style={[styles.urgBadge, { backgroundColor: COLORS.border, borderColor: COLORS.border }]}>
-                  <Text style={[styles.urgTx, { color: COLORS.dim }]}>Done</Text>
-                </View>
-              </View>
+          {hasExams && nextExam ? (
+            <View style={styles.card}>
+              {/* ── 3. Exam title ── */}
+              <Text style={styles.examTitle}>{nextExam.title}</Text>
+
+              {/* ── 4. Start date ── */}
               <View style={styles.metaRow}>
-                <Ionicons name="calendar-outline" size={12} color={COLORS.dim} />
-                <Text style={[styles.metaTx, { color: COLORS.dim }]}>
-                  {toDate(exam.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </Text>
+                <Ionicons name="calendar-outline" size={13} color={COLORS.muted} />
+                <Text style={styles.metaTx}>Starts {fmtDate(nextExam.startDate)}</Text>
               </View>
+
+              {/* ── 5. Big countdown ticker ── */}
+              <Ticker examDate={toDate(nextExam.startDate)} now={now} />
+
+              {/* ── 6. End date if present ── */}
+              {nextExam.endDate && (
+                <View style={[styles.metaRow, { marginTop: S.md }]}>
+                  <Ionicons name="flag-outline" size={13} color={COLORS.muted} />
+                  <Text style={styles.metaTx}>Exams run until {fmtDate(nextExam.endDate)}</Text>
+                </View>
+              )}
+
+              {/* Note */}
+              {!!nextExam.note && (
+                <Text style={styles.note}>{nextExam.note}</Text>
+              )}
             </View>
-          ))}
+          ) : (
+            <EmptyState icon="📅" message="No exams scheduled yet. Check back soon." />
+          )}
+
+          {/* ── 7. Motivational quote ── */}
+          <View style={styles.quoteWrap}>
+            <Ionicons name="chatbubble-ellipses-outline" size={14} color={COLORS.gold3} style={{ marginBottom: 6 }} />
+            <Text style={styles.quoteTx}>"{quote}"</Text>
+          </View>
         </>
       )}
+
       <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen:   { flex: 1, backgroundColor: COLORS.bg },
-  hero:     { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
-  badge:    { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
-  badgeTx:  { color: COLORS.gold3, fontSize: 10 },
-  title:    { color: COLORS.text, fontSize: 18, fontWeight: '700' },
-  sub:      { color: COLORS.muted, fontSize: 12, marginTop: 5 },
-  sLabel:   { color: COLORS.dim, fontSize: 10, letterSpacing: 1.5, paddingHorizontal: S.lg, paddingTop: S.lg, paddingBottom: S.sm },
-  card:     { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, marginHorizontal: S.lg, marginBottom: S.md, padding: S.lg },
-  cardTop:  { flexDirection: 'row', alignItems: 'flex-start', marginBottom: S.sm },
-  code:     { color: COLORS.gold3, fontSize: 12, fontWeight: '700' },
-  name:     { color: COLORS.text, fontSize: 14, fontWeight: '600', marginTop: 2 },
-  urgBadge: { borderWidth: 1, borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 3 },
-  urgTx:    { fontSize: 10, fontWeight: '700' },
-  metaRow:  { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  metaTx:   { color: COLORS.muted, fontSize: 11 },
+  screen:           { flex: 1, backgroundColor: COLORS.bg },
+  hero:             { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  badge:            { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
+  badgeTx:          { color: COLORS.gold3, fontSize: 10 },
+  title:            { color: COLORS.text, fontSize: 18, fontWeight: '700' },
+  sub:              { color: COLORS.muted, fontSize: 12, marginTop: 5 },
+  illustrationWrap: { alignItems: 'center', paddingVertical: S.lg },
+  card:             { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, marginHorizontal: S.lg, marginBottom: S.md, padding: S.lg },
+  examTitle:        { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: S.sm, textAlign: 'center' },
+  metaRow:          { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  metaTx:           { color: COLORS.muted, fontSize: 12 },
+  note:             { color: COLORS.dim, fontSize: 12, marginTop: S.sm, fontStyle: 'italic', borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: S.sm },
+  quoteWrap:        { marginHorizontal: S.lg, marginTop: S.md, marginBottom: S.lg, alignItems: 'center', padding: S.lg, backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border },
+  quoteTx:          { color: COLORS.muted, fontSize: 12, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
 });
 
 const tk = StyleSheet.create({
@@ -179,5 +225,5 @@ const tk = StyleSheet.create({
   box:  { flex: 1, backgroundColor: COLORS.surface, borderWidth: 1, borderRadius: RADIUS.sm, alignItems: 'center', paddingVertical: S.sm },
   val:  { fontSize: 22, fontWeight: '800' },
   lbl:  { color: COLORS.dim, fontSize: 9, marginTop: 2 },
-  done: { color: COLORS.dim, fontSize: 12, marginTop: S.sm },
+  done: { color: COLORS.dim, fontSize: 12, marginTop: S.sm, textAlign: 'center' },
 });

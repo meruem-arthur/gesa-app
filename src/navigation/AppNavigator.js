@@ -20,6 +20,7 @@ import SearchScreen          from '../screens/SearchScreen';
 import ExamCountdownScreen   from '../screens/ExamCountdownScreen';
 import ForumScreen           from '../screens/ForumScreen';
 import SemesterPlannerScreen from '../screens/SemesterPlannerScreen';
+import TimetableScreen       from '../screens/TimetableScreen';
 import AdminScreen           from '../screens/AdminScreen';
 
 const Stack = createStackNavigator();
@@ -27,19 +28,20 @@ const S = SPACING;
 
 const ADMIN_PASSWORD = 'Bond442@love1';
 
-// ─── All tabs definition ──────────────────────────────────────────────────────
+// ─── All tabs ─────────────────────────────────────────────────────────────────
 const BASE_TABS = [
-  { name: 'Home',          label: 'Home',      icon: 'home-outline',             iconOn: 'home',              component: HomeScreen            },
-  { name: 'Search',        label: 'Search',    icon: 'search-outline',           iconOn: 'search',            component: SearchScreen          },
-  { name: 'Notice',        label: 'Notice',    icon: 'notifications-outline',    iconOn: 'notifications',     component: AnnouncementsScreen   },
-  { name: 'Leaders',       label: 'Leaders',   icon: 'people-outline',           iconOn: 'people',            component: LeadersScreen         },
-  { name: 'Materials',     label: 'Materials', icon: 'book-outline',             iconOn: 'book',              component: MaterialsScreen       },
-  { name: 'PastQ',         label: 'Past Q',    icon: 'document-text-outline',    iconOn: 'document-text',     component: PastQScreen           },
-  { name: 'Events',        label: 'Events',    icon: 'calendar-outline',         iconOn: 'calendar',          component: EventsScreen          },
-  { name: 'Exams',         label: 'Exams',     icon: 'alarm-outline',            iconOn: 'alarm',             component: ExamCountdownScreen   },
-  { name: 'Forum',         label: 'Forum',     icon: 'chatbubbles-outline',      iconOn: 'chatbubbles',       component: ForumScreen           },
-  { name: 'CWA',           label: 'CWA',       icon: 'calculator-outline',       iconOn: 'calculator',        component: CWAScreen             },
-  { name: 'Planner',       label: 'Planner',   icon: 'trending-up-outline',      iconOn: 'trending-up',       component: SemesterPlannerScreen },
+  { name: 'Home',      label: 'Home',      icon: 'home-outline',          iconOn: 'home',           component: HomeScreen            },
+  { name: 'Search',    label: 'Search',    icon: 'search-outline',        iconOn: 'search',         component: SearchScreen          },
+  { name: 'Notice',    label: 'Notice',    icon: 'notifications-outline', iconOn: 'notifications',  component: AnnouncementsScreen   },
+  { name: 'Leaders',   label: 'Leaders',   icon: 'people-outline',        iconOn: 'people',         component: LeadersScreen         },
+  { name: 'Timetable', label: 'Timetable', icon: 'grid-outline',          iconOn: 'grid',           component: TimetableScreen       },
+  { name: 'Materials', label: 'Materials', icon: 'book-outline',          iconOn: 'book',           component: MaterialsScreen       },
+  { name: 'PastQ',     label: 'Past Q',    icon: 'document-text-outline', iconOn: 'document-text',  component: PastQScreen           },
+  { name: 'Events',    label: 'Events',    icon: 'calendar-outline',      iconOn: 'calendar',       component: EventsScreen          },
+  { name: 'Exams',     label: 'Exams',     icon: 'alarm-outline',         iconOn: 'alarm',          component: ExamCountdownScreen   },
+  { name: 'Forum',     label: 'Forum',     icon: 'chatbubbles-outline',   iconOn: 'chatbubbles',    component: ForumScreen           },
+  { name: 'CWA',       label: 'CWA',       icon: 'calculator-outline',    iconOn: 'calculator',     component: CWAScreen             },
+  { name: 'Planner',   label: 'Planner',   icon: 'trending-up-outline',   iconOn: 'trending-up',    component: SemesterPlannerScreen },
 ];
 
 const ADMIN_TAB = {
@@ -98,7 +100,7 @@ function AdminPasswordModal({ visible, onCancel, onSuccess }) {
 
 // ─── Custom scrollable tab bar ────────────────────────────────────────────────
 function ScrollableTabBar({ tabs, activeTab, onTabPress, onHomeLongPress }) {
-  const insets = useSafeAreaInsets();
+  const insets   = useSafeAreaInsets();
   const scrollRef = useRef(null);
 
   return (
@@ -114,7 +116,6 @@ function ScrollableTabBar({ tabs, activeTab, onTabPress, onHomeLongPress }) {
         {tabs.map(tab => {
           const isActive = activeTab === tab.name;
           const isHome   = tab.name === 'Home';
-
           return (
             <TouchableOpacity
               key={tab.name}
@@ -126,17 +127,13 @@ function ScrollableTabBar({ tabs, activeTab, onTabPress, onHomeLongPress }) {
               onLongPress={isHome ? onHomeLongPress : undefined}
               activeOpacity={0.75}
             >
-              {/* Active indicator dot */}
               {isActive && <View style={tb.activeDot} />}
-
               <Ionicons
                 name={isActive ? tab.iconOn : tab.icon}
                 size={22}
                 color={isActive ? COLORS.gold2 : COLORS.dim}
               />
-              <Text style={[tb.label, isActive && tb.labelActive]}>
-                {tab.label}
-              </Text>
+              <Text style={[tb.label, isActive && tb.labelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -152,7 +149,6 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
   const tabs = adminUnlocked ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS;
   const CurrentScreen = tabs.find(t => t.name === activeTab)?.component || HomeScreen;
 
-  // Build a fake navigation object for screens that use navigation.navigate
   const fakeNavigation = {
     navigate: (name) => {
       const found = tabs.find(t => t.name === name);
@@ -163,12 +159,9 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
-      {/* Screen content */}
       <View style={{ flex: 1 }}>
         <CurrentScreen navigation={fakeNavigation} />
       </View>
-
-      {/* Scrollable tab bar */}
       <ScrollableTabBar
         tabs={tabs}
         activeTab={activeTab}
@@ -211,55 +204,18 @@ export default function AppNavigator() {
   );
 }
 
-// ─── Tab bar styles ───────────────────────────────────────────────────────────
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const tb = StyleSheet.create({
-  wrapper: {
-    backgroundColor: 'rgba(13,10,28,0.98)',
-    borderTopWidth: 0,
-  },
-  topLine: {
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-  scrollContent: {
-    paddingHorizontal: S.sm,
-    paddingVertical: S.sm,
-    gap: 4,
-    alignItems: 'center',
-  },
-  tab: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: RADIUS.lg,
-    minWidth: 60,
-    position: 'relative',
-  },
-  tabActive: {
-    backgroundColor: 'rgba(212,160,23,0.08)',
-  },
-  activeDot: {
-    position: 'absolute',
-    top: 0,
-    width: 18,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.gold2,
-  },
-  label: {
-    fontSize: 9,
-    color: COLORS.dim,
-    marginTop: 3,
-    fontWeight: '500',
-  },
-  labelActive: {
-    color: COLORS.gold2,
-    fontWeight: '700',
-  },
+  wrapper:       { backgroundColor: 'rgba(13,10,28,0.98)', borderTopWidth: 0 },
+  topLine:       { height: 1, backgroundColor: COLORS.border },
+  scrollContent: { paddingHorizontal: S.sm, paddingVertical: S.sm, gap: 4, alignItems: 'center' },
+  tab:           { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: RADIUS.lg, minWidth: 60, position: 'relative' },
+  tabActive:     { backgroundColor: 'rgba(212,160,23,0.08)' },
+  activeDot:     { position: 'absolute', top: 0, width: 18, height: 3, borderRadius: 2, backgroundColor: COLORS.gold2 },
+  label:         { fontSize: 9, color: COLORS.dim, marginTop: 3, fontWeight: '500' },
+  labelActive:   { color: COLORS.gold2, fontWeight: '700' },
 });
 
-// ─── Modal styles ─────────────────────────────────────────────────────────────
 const ms = StyleSheet.create({
   overlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   box:        { backgroundColor: COLORS.card, borderRadius: 16, padding: 24, width: '100%', borderWidth: 1, borderColor: COLORS.border },

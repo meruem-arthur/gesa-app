@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/gesa-logo.jpg",
         "backgroundColor": "#07050f"
       },
-      "package": "com.gesa.umat"
+      "package": "com.gesa.umat",
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       [

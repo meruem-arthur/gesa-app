@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { usePastQuestions } from '../hooks/useFirestore';
+import { useDownloads } from '../hooks/useDownloads';
 import { Loader, ErrorState, EmptyState, PillRow, TabRow } from '../components/SharedComponents';
 
 const LEVELS = [
@@ -23,6 +23,7 @@ export default function PastQScreen() {
   const [sem, setSem] = useState(1);
   const [year, setYear] = useState(null);
   const { data, loading, error } = usePastQuestions(level, sem);
+  const { downloaded, downloading, download, openItem } = useDownloads();
 
   // Derive unique years from data
   const years = useMemo(() => {
@@ -69,26 +70,48 @@ export default function PastQScreen() {
         <EmptyState icon="📄" message="No past questions uploaded yet for this selection." />
       )}
 
-      {filtered.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.crow}
-          onPress={() => WebBrowser.openBrowserAsync(item.fileUrl)}
-          activeOpacity={0.75}
-        >
-          <View style={styles.cico}>
-            <Ionicons name="reader-outline" size={15} color={COLORS.p300} />
+      {filtered.map((item) => {
+        const isDownloaded = !!downloaded[item.fileUrl];
+        const progress = downloading[item.id];
+        const isDownloading = progress !== undefined;
+
+        return (
+          <View key={item.id} style={styles.crow}>
+            <TouchableOpacity
+              style={styles.crowLeft}
+              onPress={() => openItem(item.fileUrl)}
+              activeOpacity={0.75}
+            >
+              <View style={styles.cico}>
+                <Ionicons name="reader-outline" size={15} color={COLORS.p300} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.ccode}>{item.courseCode}</Text>
+                <Text style={styles.cname}>{item.courseName}</Text>
+                <Text style={styles.cmeta}>Level {item.level} · Sem {item.semester} · {item.year}</Text>
+              </View>
+              <View style={styles.yearBadge}>
+                <Text style={styles.yearBadgeTx}>{item.year}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.downloadBtn}
+              onPress={() => download(item.id, item.fileUrl)}
+              activeOpacity={0.75}
+              disabled={isDownloading}
+            >
+              {isDownloading ? (
+                <ActivityIndicator size="small" color={COLORS.p300} />
+              ) : isDownloaded ? (
+                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+              ) : (
+                <Ionicons name="download-outline" size={20} color={COLORS.p300} />
+              )}
+            </TouchableOpacity>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.ccode}>{item.courseCode}</Text>
-            <Text style={styles.cname}>{item.courseName}</Text>
-            <Text style={styles.cmeta}>Level {item.level} · Sem {item.semester} · {item.year}</Text>
-          </View>
-          <View style={styles.yearBadge}>
-            <Text style={styles.yearBadgeTx}>{item.year}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+        );
+      })}
 
       <View style={{ height: 32 }} />
     </ScrollView>
@@ -109,10 +132,12 @@ const styles = StyleSheet.create({
   yrTx: { color: COLORS.muted, fontSize: 12 },
   yrTxOn: { color: COLORS.gold3 },
   crow: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, marginHorizontal: S.lg, marginBottom: 8, padding: S.md },
+  crowLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: S.md },
   cico: { width: 31, height: 31, borderRadius: S.sm, backgroundColor: 'rgba(168,85,247,0.14)', alignItems: 'center', justifyContent: 'center' },
   ccode: { color: COLORS.gold3, fontSize: 11, fontWeight: '600' },
   cname: { color: COLORS.text, fontSize: 12, marginTop: 2 },
   cmeta: { color: COLORS.muted, fontSize: 10, marginTop: 3 },
   yearBadge: { backgroundColor: 'rgba(212,160,23,0.13)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.22)', borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 3 },
   yearBadgeTx: { color: COLORS.gold3, fontSize: 9 },
+  downloadBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 });

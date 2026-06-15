@@ -587,19 +587,19 @@ function ExamsSection() {
   const [list, setList]         = useState([]);
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm]         = useState({ courseCode: '', courseName: '', date: '', venue: '', level: '' });
+  const [form, setForm]         = useState({ title: '', startDate: '', endDate: '', note: '' });
   const [saving, setSaving]     = useState(false);
 
   const refresh = async () => { setLoading(true); try { setList(await getAllExams()); } finally { setLoading(false); } };
   useEffect(() => { refresh(); }, []);
 
   async function handleSave() {
-    if (!form.courseCode || !form.date) { Alert.alert('Fill course code and date'); return; }
+    if (!form.title || !form.startDate) { Alert.alert('Fill title and start date'); return; }
     setSaving(true);
     try {
       await addExam(form); await refresh();
-      setForm({ courseCode: '', courseName: '', date: '', venue: '', level: '' }); setShowForm(false);
-      Alert.alert('✅ Exam added!');
+      setForm({ title: '', startDate: '', endDate: '', note: '' }); setShowForm(false);
+      Alert.alert('✅ Exam period added!');
     } catch (e) { Alert.alert('Error', e.message); }
     finally { setSaving(false); }
   }
@@ -616,25 +616,17 @@ function ExamsSection() {
       <SectionHeader title="Exam Countdown" icon="alarm-outline" onAdd={() => setShowForm(v => !v)} />
       {showForm && (
         <View style={sec.form}>
-          <Field label="Course Code" value={form.courseCode} onChangeText={v => setForm(f => ({ ...f, courseCode: v }))} placeholder="e.g. GE 305" />
-          <Field label="Course Name" value={form.courseName} onChangeText={v => setForm(f => ({ ...f, courseName: v }))} />
-          <Field label="Date & Time" value={form.date} onChangeText={v => setForm(f => ({ ...f, date: v }))} placeholder="e.g. 2025-06-10T09:00:00Z" />
-          <Field label="Venue (optional)" value={form.venue} onChangeText={v => setForm(f => ({ ...f, venue: v }))} placeholder="e.g. Exam Hall A" />
-          <Text style={fi.label}>Level</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: S.sm }}>
-            {['100','200','300','400','All'].map(l => (
-              <TouchableOpacity key={l} style={[sec.chip, form.level === l && sec.chipOn]} onPress={() => setForm(f => ({ ...f, level: l }))}>
-                <Text style={[sec.chipTx, form.level === l && sec.chipTxOn]}>{l === 'All' ? 'All Levels' : `Level ${l}`}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Field label="Title" value={form.title} onChangeText={v => setForm(f => ({ ...f, title: v }))} placeholder="e.g. End of Semester 2 Exams" />
+          <Field label="Start Date & Time" value={form.startDate} onChangeText={v => setForm(f => ({ ...f, startDate: v }))} placeholder="e.g. 2025-06-10T09:00:00Z" />
+          <Field label="End Date (optional)" value={form.endDate} onChangeText={v => setForm(f => ({ ...f, endDate: v }))} placeholder="e.g. 2025-06-21T17:00:00Z" />
+          <Field label="Note (optional)" value={form.note} onChangeText={v => setForm(f => ({ ...f, note: v }))} placeholder="e.g. Check notice board for timetable" multiline />
           <FormBtns onCancel={() => setShowForm(false)} onSave={handleSave} saving={saving} />
         </View>
       )}
       {loading ? <ActivityIndicator color={COLORS.gold2} style={{ margin: S.md }} />
         : list.map(ex => {
-          const d = ex.date?.toDate ? ex.date.toDate() : new Date(ex.date);
-          return <ItemRow key={ex.id} name={ex.courseCode} sub={`${d.toDateString()} · ${ex.venue || 'No venue'}`} onDelete={() => handleDelete(ex.id)} />;
+          const d = ex.startDate?.toDate ? ex.startDate.toDate() : new Date(ex.startDate);
+          return <ItemRow key={ex.id} name={ex.title} sub={`Starts ${d.toDateString()}`} onDelete={() => handleDelete(ex.id)} />;
         })}
     </View>
   );
