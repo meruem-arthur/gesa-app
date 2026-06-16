@@ -105,33 +105,44 @@ function AdminPasswordModal({ visible, onCancel, onSuccess }) {
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
-  const insets   = useSafeAreaInsets();
-  const slideX   = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
-  const opacity  = useRef(new Animated.Value(0)).current;
-  const isOpen   = useRef(false);
+  const insets  = useSafeAreaInsets();
+  const slideX  = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  // Track whether modal should stay mounted during close animation
+  const [mounted, setMounted] = useState(false);
 
-  // Animate when visible changes
   React.useEffect(() => {
-    if (visible && !isOpen.current) {
-      isOpen.current = true;
-      Animated.parallel([
-        Animated.timing(slideX,  { toValue: 0,   duration: 260, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1,   duration: 260, useNativeDriver: true }),
-      ]).start();
-    } else if (!visible && isOpen.current) {
+    if (visible) {
+      setMounted(true);
+      // Small delay so Modal is fully mounted before animating
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(slideX,  { toValue: 0, duration: 260, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 1, duration: 260, useNativeDriver: true }),
+        ]).start();
+      }, 10);
+    } else {
       Animated.parallel([
         Animated.timing(slideX,  { toValue: -SIDEBAR_WIDTH, duration: 220, useNativeDriver: true }),
         Animated.timing(opacity, { toValue: 0,              duration: 220, useNativeDriver: true }),
-      ]).start(() => { isOpen.current = false; });
+      ]).start(() => {
+        // Only unmount AFTER animation fully completes
+        setMounted(false);
+      });
     }
   }, [visible]);
 
-  if (!visible && !isOpen.current) return null;
-
+  // Use a Modal so it sits in its own native layer — no touch bleed onto the app
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* Backdrop */}
-      <Animated.View style={[sd.backdrop, { opacity }]} pointerEvents="auto">
+    <Modal
+      visible={mounted}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      {/* Backdrop — tap to close */}
+      <Animated.View style={[sd.backdrop, { opacity }]}>
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={StyleSheet.absoluteFill} />
         </TouchableWithoutFeedback>
@@ -144,7 +155,6 @@ function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
           { width: SIDEBAR_WIDTH, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 },
           { transform: [{ translateX: slideX }] },
         ]}
-        pointerEvents="auto"
       >
         {/* Logo + title */}
         <View style={sd.header}>
@@ -194,7 +204,7 @@ function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
         <View style={sd.divider} />
         <Text style={sd.footer}>GESA UMaT © {new Date().getFullYear()}</Text>
       </Animated.View>
-    </View>
+    </Modal>
   );
 }
 
