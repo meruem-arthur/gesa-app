@@ -67,15 +67,18 @@ export default function MaterialsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.downloadBtn}
-              onPress={() => download(course.id, course.fileUrl)}
+              style={[styles.downloadBtn, isDownloaded && styles.downloadBtnOpen]}
+              onPress={() => isDownloaded ? openItem(course.fileUrl) : download(course.id, course.fileUrl, course.fileName)}
               activeOpacity={0.75}
               disabled={isDownloading}
             >
               {isDownloading ? (
                 <ActivityIndicator size="small" color={COLORS.gold2} />
               ) : isDownloaded ? (
-                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                <>
+                  <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
+                  <Text style={styles.openTx}>Open</Text>
+                </>
               ) : (
                 <Ionicons name="download-outline" size={20} color={COLORS.gold2} />
               )}
@@ -102,5 +105,7 @@ const styles = StyleSheet.create({
   cico: { width: 31, height: 31, borderRadius: S.sm, backgroundColor: 'rgba(212,160,23,0.11)', alignItems: 'center', justifyContent: 'center' },
   ccode: { color: COLORS.gold3, fontSize: 11, fontWeight: '600' },
   cname: { color: COLORS.text, fontSize: 12, marginTop: 2 },
-  downloadBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  downloadBtn: { width: 52, height: 36, alignItems: 'center', justifyContent: 'center' },
+  downloadBtnOpen: { flexDirection: 'row', gap: 3, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: RADIUS.pill, paddingHorizontal: 6 },
+  openTx: { color: '#22c55e', fontSize: 11, fontWeight: '600' },
 });

@@ -42,10 +42,11 @@ export function useDownloads() {
     try {
       const clean = url.split('?')[0];
       const parts = clean.split('/');
-      const last = parts[parts.length - 1] || fallback;
-      return decodeURIComponent(last);
+      const last = decodeURIComponent(parts[parts.length - 1] || fallback);
+      // Always ensure the file ends in .pdf so Android knows how to open it
+      return last.endsWith('.pdf') ? last : `${last}.pdf`;
     } catch {
-      return fallback;
+      return fallback.endsWith('.pdf') ? fallback : `${fallback}.pdf`;
     }
   };
 
@@ -57,18 +58,20 @@ export function useDownloads() {
         flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
       });
     } else {
-      const WebBrowser = require('expo-web-browser');
-      await WebBrowser.openBrowserAsync(localPath);
+      // iOS: expo-file-system URI can be opened directly via Linking
+      const { openURL } = require('react-native').Linking;
+      await openURL(localPath);
     }
   };
 
-  const download = useCallback(async (id, url) => {
+  const download = useCallback(async (id, url, fileName) => {
     if (downloading[id]) return;
     setDownloading((prev) => ({ ...prev, [id]: 0 }));
 
     try {
-      const fileName = getFileName(url, `${id}.pdf`);
-      const localPath = `${FileSystem.documentDirectory}${fileName}`;
+      const resolvedName = fileName || getFileName(url, `${id}.pdf`);
+      const safeName = resolvedName.endsWith('.pdf') ? resolvedName : `${resolvedName}.pdf`;
+      const localPath = `${FileSystem.documentDirectory}${safeName}`;
 
       const callback = (progressEvent) => {
         const progress =
@@ -109,12 +112,17 @@ export function useDownloads() {
           await openLocalFile(localPath);
           return;
         }
+        // File was in AsyncStorage but deleted from disk — clean it up
+        const updated = { ...downloaded };
+        delete updated[url];
+        setDownloaded(updated);
+        await persist(updated);
       } catch (e) {
         console.warn('useDownloads: failed to open local file', e);
       }
     }
-    const WebBrowser = require('expo-web-browser');
-    await WebBrowser.openBrowserAsync(url);
+    // Not downloaded yet — prompt the user
+    Alert.alert('Not downloaded', 'Tap the download button first to save this file for offline access.');
   }, [downloaded]);
 
   return { downloaded, downloading, download, openItem };

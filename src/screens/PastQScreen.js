@@ -96,15 +96,18 @@ export default function PastQScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.downloadBtn}
-              onPress={() => download(item.id, item.fileUrl)}
+              style={[styles.downloadBtn, isDownloaded && styles.downloadBtnOpen]}
+              onPress={() => isDownloaded ? openItem(item.fileUrl) : download(item.id, item.fileUrl, item.fileName)}
               activeOpacity={0.75}
               disabled={isDownloading}
             >
               {isDownloading ? (
                 <ActivityIndicator size="small" color={COLORS.p300} />
               ) : isDownloaded ? (
-                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                <>
+                  <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
+                  <Text style={styles.openTx}>Open</Text>
+                </>
               ) : (
                 <Ionicons name="download-outline" size={20} color={COLORS.p300} />
               )}
@@ -139,5 +142,7 @@ const styles = StyleSheet.create({
   cmeta: { color: COLORS.muted, fontSize: 10, marginTop: 3 },
   yearBadge: { backgroundColor: 'rgba(212,160,23,0.13)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.22)', borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 3 },
   yearBadgeTx: { color: COLORS.gold3, fontSize: 9 },
-  downloadBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  downloadBtn: { width: 52, height: 36, alignItems: 'center', justifyContent: 'center' },
+  downloadBtnOpen: { flexDirection: 'row', gap: 3, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: RADIUS.pill, paddingHorizontal: 6 },
+  openTx: { color: '#22c55e', fontSize: 11, fontWeight: '600' },
 });

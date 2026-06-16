@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Modal, TextInput, Alert, Platform, Dimensions,
+  View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback,
+  ScrollView, Modal, TextInput, Alert, Animated, Dimensions, Image,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -23,28 +23,33 @@ import SemesterPlannerScreen from '../screens/SemesterPlannerScreen';
 import TimetableScreen       from '../screens/TimetableScreen';
 import AdminScreen           from '../screens/AdminScreen';
 
-const Stack = createStackNavigator();
-const S = SPACING;
+const Stack  = createStackNavigator();
+const S      = SPACING;
+const SCREEN = Dimensions.get('window');
+const SIDEBAR_WIDTH = Math.min(SCREEN.width * 0.78, 300);
 
 const ADMIN_PASSWORD = 'Bond442@love1';
 
-// ─── All tabs ─────────────────────────────────────────────────────────────────
-const BASE_TABS = [
-  { name: 'Home',      label: 'Home',      icon: 'home-outline',          iconOn: 'home',           component: HomeScreen            },
-  { name: 'Search',    label: 'Search',    icon: 'search-outline',        iconOn: 'search',         component: SearchScreen          },
-  { name: 'Notice',    label: 'Notice',    icon: 'notifications-outline', iconOn: 'notifications',  component: AnnouncementsScreen   },
-  { name: 'Leaders',   label: 'Leaders',   icon: 'people-outline',        iconOn: 'people',         component: LeadersScreen         },
-  { name: 'Timetable', label: 'Timetable', icon: 'grid-outline',          iconOn: 'grid',           component: TimetableScreen       },
-  { name: 'Materials', label: 'Materials', icon: 'book-outline',          iconOn: 'book',           component: MaterialsScreen       },
-  { name: 'PastQ',     label: 'Past Q',    icon: 'document-text-outline', iconOn: 'document-text',  component: PastQScreen           },
-  { name: 'Events',    label: 'Events',    icon: 'calendar-outline',      iconOn: 'calendar',       component: EventsScreen          },
-  { name: 'Exams',     label: 'Exams',     icon: 'alarm-outline',         iconOn: 'alarm',          component: ExamCountdownScreen   },
-  { name: 'Forum',     label: 'Forum',     icon: 'chatbubbles-outline',   iconOn: 'chatbubbles',    component: ForumScreen           },
-  { name: 'CWA',       label: 'CWA',       icon: 'calculator-outline',    iconOn: 'calculator',     component: CWAScreen             },
-  { name: 'Planner',   label: 'Planner',   icon: 'trending-up-outline',   iconOn: 'trending-up',    component: SemesterPlannerScreen },
+// ─── Tab definitions ──────────────────────────────────────────────────────────
+const MAIN_TABS = [
+  { name: 'Home',      label: 'Home',      icon: 'home-outline',          iconOn: 'home',           component: HomeScreen          },
+  { name: 'Materials', label: 'Materials', icon: 'book-outline',          iconOn: 'book',           component: MaterialsScreen     },
+  { name: 'PastQ',     label: 'Past Q',    icon: 'document-text-outline', iconOn: 'document-text',  component: PastQScreen         },
+  { name: 'Timetable', label: 'Timetable', icon: 'grid-outline',          iconOn: 'grid',           component: TimetableScreen     },
 ];
 
-const ADMIN_TAB = {
+const SIDEBAR_ITEMS = [
+  { name: 'Search',  label: 'Search',   icon: 'search-outline',        iconOn: 'search',        component: SearchScreen          },
+  { name: 'Notice',  label: 'Notice',   icon: 'notifications-outline', iconOn: 'notifications', component: AnnouncementsScreen   },
+  { name: 'Leaders', label: 'Leaders',  icon: 'people-outline',        iconOn: 'people',        component: LeadersScreen         },
+  { name: 'Events',  label: 'Events',   icon: 'calendar-outline',      iconOn: 'calendar',      component: EventsScreen          },
+  { name: 'Exams',   label: 'Exams',    icon: 'alarm-outline',         iconOn: 'alarm',         component: ExamCountdownScreen   },
+  { name: 'Forum',   label: 'Forum',    icon: 'chatbubbles-outline',   iconOn: 'chatbubbles',   component: ForumScreen           },
+  { name: 'CWA',     label: 'CWA',      icon: 'calculator-outline',    iconOn: 'calculator',    component: CWAScreen             },
+  { name: 'Planner', label: 'Planner',  icon: 'trending-up-outline',   iconOn: 'trending-up',   component: SemesterPlannerScreen },
+];
+
+const ADMIN_ITEM = {
   name: 'Admin', label: 'Admin',
   icon: 'shield-checkmark-outline', iconOn: 'shield-checkmark',
   component: AdminScreen,
@@ -98,21 +103,109 @@ function AdminPasswordModal({ visible, onCancel, onSuccess }) {
   );
 }
 
-// ─── Custom scrollable tab bar ────────────────────────────────────────────────
-function ScrollableTabBar({ tabs, activeTab, onTabPress, onHomeLongPress }) {
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
   const insets   = useSafeAreaInsets();
-  const scrollRef = useRef(null);
+  const slideX   = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+  const opacity  = useRef(new Animated.Value(0)).current;
+  const isOpen   = useRef(false);
+
+  // Animate when visible changes
+  React.useEffect(() => {
+    if (visible && !isOpen.current) {
+      isOpen.current = true;
+      Animated.parallel([
+        Animated.timing(slideX,  { toValue: 0,   duration: 260, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1,   duration: 260, useNativeDriver: true }),
+      ]).start();
+    } else if (!visible && isOpen.current) {
+      Animated.parallel([
+        Animated.timing(slideX,  { toValue: -SIDEBAR_WIDTH, duration: 220, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0,              duration: 220, useNativeDriver: true }),
+      ]).start(() => { isOpen.current = false; });
+    }
+  }, [visible]);
+
+  if (!visible && !isOpen.current) return null;
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {/* Backdrop */}
+      <Animated.View style={[sd.backdrop, { opacity }]} pointerEvents="auto">
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={StyleSheet.absoluteFill} />
+        </TouchableWithoutFeedback>
+      </Animated.View>
+
+      {/* Drawer */}
+      <Animated.View
+        style={[
+          sd.drawer,
+          { width: SIDEBAR_WIDTH, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 },
+          { transform: [{ translateX: slideX }] },
+        ]}
+        pointerEvents="auto"
+      >
+        {/* Logo + title */}
+        <View style={sd.header}>
+          <View style={sd.logoWrap}>
+            <Image
+              source={require('../assets/gesa-logo.png')}
+              style={sd.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <View>
+            <Text style={sd.appName}>GESA UMaT</Text>
+            <Text style={sd.appSub}>Student Portal</Text>
+          </View>
+        </View>
+
+        <View style={sd.divider} />
+
+        <Text style={sd.sectionLabel}>MORE SCREENS</Text>
+
+        <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+          {sidebarItems.map(item => {
+            const isActive = activeTab === item.name;
+            return (
+              <TouchableOpacity
+                key={item.name}
+                style={[sd.item, isActive && sd.itemActive]}
+                onPress={() => { onNavigate(item.name); onClose(); }}
+                activeOpacity={0.75}
+              >
+                <View style={[sd.itemIco, isActive && sd.itemIcoActive]}>
+                  <Ionicons
+                    name={isActive ? item.iconOn : item.icon}
+                    size={18}
+                    color={isActive ? COLORS.gold2 : COLORS.muted}
+                  />
+                </View>
+                <Text style={[sd.itemLabel, isActive && sd.itemLabelActive]}>
+                  {item.label}
+                </Text>
+                {isActive && <View style={sd.activeBar} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <View style={sd.divider} />
+        <Text style={sd.footer}>GESA UMaT © {new Date().getFullYear()}</Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── Custom tab bar ───────────────────────────────────────────────────────────
+function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress, onHomeTap }) {
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={[tb.wrapper, { paddingBottom: insets.bottom || 8 }]}>
       <View style={tb.topLine} />
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tb.scrollContent}
-        bounces={false}
-      >
+      <View style={tb.row}>
         {tabs.map(tab => {
           const isActive = activeTab === tab.name;
           const isHome   = tab.name === 'Home';
@@ -121,10 +214,9 @@ function ScrollableTabBar({ tabs, activeTab, onTabPress, onHomeLongPress }) {
               key={tab.name}
               style={[tb.tab, isActive && tb.tabActive]}
               onPress={() => {
-                if (isHome) onHomeLongPress?.();
+                if (isHome) onHomeTap?.();
                 onTabPress(tab.name);
               }}
-              onLongPress={isHome ? onHomeLongPress : undefined}
               activeOpacity={0.75}
             >
               {isActive && <View style={tb.activeDot} />}
@@ -137,23 +229,35 @@ function ScrollableTabBar({ tabs, activeTab, onTabPress, onHomeLongPress }) {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+
+        {/* More button */}
+        <TouchableOpacity style={tb.tab} onPress={onMorePress} activeOpacity={0.75}>
+          <Ionicons name="menu-outline" size={22} color={COLORS.dim} />
+          <Text style={tb.label}>More</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 // ─── Main app layout ──────────────────────────────────────────────────────────
 function AppLayout({ adminUnlocked, onAdminTap }) {
-  const [activeTab, setActiveTab] = useState('Home');
+  const [activeTab,    setActiveTab]    = useState('Home');
+  const [sidebarOpen,  setSidebarOpen]  = useState(false);
 
-  const tabs = adminUnlocked ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS;
-  const CurrentScreen = tabs.find(t => t.name === activeTab)?.component || HomeScreen;
+  const sidebarItems = adminUnlocked ? [...SIDEBAR_ITEMS, ADMIN_ITEM] : SIDEBAR_ITEMS;
+
+  // All navigable screens = main tabs + sidebar items
+  const allScreens = [...MAIN_TABS, ...sidebarItems];
+  const CurrentScreen = allScreens.find(t => t.name === activeTab)?.component || HomeScreen;
+
+  const navigate = useCallback((name) => {
+    const found = allScreens.find(t => t.name === name);
+    if (found) setActiveTab(name);
+  }, [allScreens]);
 
   const fakeNavigation = {
-    navigate: (name) => {
-      const found = tabs.find(t => t.name === name);
-      if (found) setActiveTab(name);
-    },
+    navigate,
     goBack: () => {},
   };
 
@@ -162,11 +266,21 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
       <View style={{ flex: 1 }}>
         <CurrentScreen navigation={fakeNavigation} />
       </View>
-      <ScrollableTabBar
-        tabs={tabs}
+
+      <BottomTabBar
+        tabs={MAIN_TABS}
         activeTab={activeTab}
         onTabPress={setActiveTab}
-        onHomeLongPress={onAdminTap}
+        onMorePress={() => setSidebarOpen(true)}
+        onHomeTap={onAdminTap}
+      />
+
+      <Sidebar
+        visible={sidebarOpen}
+        activeTab={activeTab}
+        sidebarItems={sidebarItems}
+        onClose={() => setSidebarOpen(false)}
+        onNavigate={navigate}
       />
     </View>
   );
@@ -187,7 +301,7 @@ export default function AppNavigator() {
         onSuccess={() => {
           setPwdVisible(false);
           setAdminUnlocked(true);
-          Alert.alert('🔓 Admin unlocked', 'Admin tab is now visible. Scroll to the end of the tab bar.');
+          Alert.alert('🔓 Admin unlocked', 'Admin is now available in the sidebar under "More".');
         }}
       />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -206,14 +320,34 @@ export default function AppNavigator() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const tb = StyleSheet.create({
-  wrapper:       { backgroundColor: 'rgba(13,10,28,0.98)', borderTopWidth: 0 },
-  topLine:       { height: 1, backgroundColor: COLORS.border },
-  scrollContent: { paddingHorizontal: S.sm, paddingVertical: S.sm, gap: 4, alignItems: 'center' },
-  tab:           { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: RADIUS.lg, minWidth: 60, position: 'relative' },
-  tabActive:     { backgroundColor: 'rgba(212,160,23,0.08)' },
-  activeDot:     { position: 'absolute', top: 0, width: 18, height: 3, borderRadius: 2, backgroundColor: COLORS.gold2 },
-  label:         { fontSize: 9, color: COLORS.dim, marginTop: 3, fontWeight: '500' },
-  labelActive:   { color: COLORS.gold2, fontWeight: '700' },
+  wrapper:     { backgroundColor: 'rgba(13,10,28,0.98)', borderTopWidth: 0 },
+  topLine:     { height: 1, backgroundColor: COLORS.border },
+  row:         { flexDirection: 'row', paddingHorizontal: S.sm, paddingTop: S.sm, paddingBottom: 4 },
+  tab:         { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, borderRadius: RADIUS.lg, position: 'relative', minWidth: 56 },
+  tabActive:   { backgroundColor: 'rgba(212,160,23,0.08)' },
+  activeDot:   { position: 'absolute', top: 0, width: 18, height: 3, borderRadius: 2, backgroundColor: COLORS.gold2 },
+  label:       { fontSize: 9, color: COLORS.dim, marginTop: 3, fontWeight: '500' },
+  labelActive: { color: COLORS.gold2, fontWeight: '700' },
+});
+
+const sd = StyleSheet.create({
+  backdrop:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+  drawer:         { position: 'absolute', top: 0, left: 0, bottom: 0, backgroundColor: '#110d2a', borderRightWidth: 1, borderRightColor: COLORS.border, paddingHorizontal: 0 },
+  header:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingBottom: 16 },
+  logoWrap:       { width: 42, height: 42, borderRadius: 10, backgroundColor: 'rgba(212,160,23,0.1)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  logo:           { width: 36, height: 36 },
+  appName:        { color: COLORS.text, fontSize: 14, fontWeight: '800' },
+  appSub:         { color: COLORS.muted, fontSize: 10, marginTop: 1 },
+  divider:        { height: 1, backgroundColor: COLORS.border, marginHorizontal: 20, marginVertical: 12 },
+  sectionLabel:   { color: COLORS.dim, fontSize: 9, fontWeight: '700', letterSpacing: 1.2, paddingHorizontal: 20, marginBottom: 6 },
+  item:           { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 20, marginHorizontal: 10, borderRadius: RADIUS.md, marginBottom: 2, position: 'relative' },
+  itemActive:     { backgroundColor: 'rgba(212,160,23,0.08)' },
+  itemIco:        { width: 34, height: 34, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center' },
+  itemIcoActive:  { backgroundColor: 'rgba(212,160,23,0.13)' },
+  itemLabel:      { color: COLORS.muted, fontSize: 13, fontWeight: '500', flex: 1 },
+  itemLabelActive:{ color: COLORS.gold2, fontWeight: '700' },
+  activeBar:      { position: 'absolute', right: 10, width: 3, height: 20, borderRadius: 2, backgroundColor: COLORS.gold2 },
+  footer:         { color: COLORS.dim, fontSize: 9, textAlign: 'center', paddingHorizontal: 20, paddingTop: 4 },
 });
 
 const ms = StyleSheet.create({

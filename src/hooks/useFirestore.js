@@ -208,7 +208,8 @@ export async function addMaterial(data) {
   return addDoc(collection(db, 'learningMaterials'), {
     level: Number(data.level), semester: Number(data.semester),
     courseCode: data.courseCode, courseName: data.courseName,
-    fileUrl: data.fileUrl, uploadedAt: Timestamp.now(),
+    fileUrl: data.fileUrl, fileName: data.fileName || '',
+    uploadedAt: Timestamp.now(),
   });
 }
 export async function deleteMaterial(id) { return deleteDoc(doc(db, 'learningMaterials', id)); }
@@ -218,7 +219,7 @@ export async function addPastQuestion(data) {
     level: Number(data.level), semester: Number(data.semester),
     courseCode: data.courseCode, courseName: data.courseName,
     year: Number(data.year), fileUrl: data.fileUrl,
-    uploadedAt: Timestamp.now(),
+    fileName: data.fileName || '', uploadedAt: Timestamp.now(),
   });
 }
 export async function deletePastQuestion(id) { return deleteDoc(doc(db, 'pastQuestions', id)); }

@@ -4,10 +4,10 @@
     "slug": "gesa-umat",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/gesa-logo.jpg",
+    "icon": "./assets/gesa-logo.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/gesa-logo.jpg",
+      "image": "./assets/gesa-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#07050f"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/gesa-logo.jpg",
+        "foregroundImage": "./assets/gesa-logo-adaptive.png",
         "backgroundColor": "#07050f"
       },
       "package": "com.gesa.umat",
