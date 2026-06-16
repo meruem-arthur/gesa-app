@@ -14,7 +14,7 @@
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.29",
     "babel-preset-expo": "~54.0.10",
-    "expo": "~54.0.0",
+    "expo": "~54.0.35",
     "expo-blur": "~15.0.8",
     "expo-device": "~8.0.10",
     "expo-document-picker": "~14.0.8",

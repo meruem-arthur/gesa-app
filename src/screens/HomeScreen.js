@@ -14,7 +14,7 @@ import { Loader, SectionLabel } from '../components/SharedComponents';
 const S = SPACING;
 const { width: W, height: H } = Dimensions.get('window');
 
-const GESA_LOGO = require('../assets/gesa-logo.jpg');
+const GESA_LOGO = require('../assets/gesa-logo.png');
 
 // ─── Single animated wave strip ───────────────────────────────────────────────
 // Moves horizontally across the screen, blurred, semi-transparent
