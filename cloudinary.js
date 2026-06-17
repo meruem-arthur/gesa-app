@@ -7,13 +7,26 @@
 const CLOUD_NAME    = 'df9ns044o';
 const UPLOAD_PRESET = 'gesa-app';
 
-// ─── uploadFile — PDFs (learning materials & past questions) ──────────────────
+// ─── Derive MIME type from file extension ─────────────────────────────────────
+function getMimeType(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  switch (ext) {
+    case 'pdf':  return 'application/pdf';
+    case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'doc':  return 'application/msword';
+    case 'pptx': return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    case 'ppt':  return 'application/vnd.ms-powerpoint';
+    default:     return 'image/jpeg';
+  }
+}
+
+// ─── uploadFile — PDFs, Word docs, PowerPoint slides ─────────────────────────
 export async function uploadFile(fileUri, folder = 'gesa') {
-  const isPDF    = fileUri.toLowerCase().endsWith('.pdf') || fileUri.toLowerCase().includes('.pdf');
-  const fileName = fileUri.split('/').pop();
-  const publicId = fileName.replace(/\.[^/.]+$/, ''); // strip extension for public_id
-  const mimeType = isPDF ? 'application/pdf' : 'image/jpeg';
-  const resType  = isPDF ? 'raw' : 'image';
+  const isDocument = /\.(pdf|docx|pptx|doc|ppt)$/i.test(fileUri);
+  const fileName   = typeof fileUri === 'string' ? fileUri.split('/').pop() : fileUri.name;
+  const publicId   = fileName.replace(/\.[^/.]+$/, ''); // strip extension for public_id
+  const mimeType   = isDocument ? getMimeType(fileName) : 'image/jpeg';
+  const resType    = isDocument ? 'raw' : 'image';
 
   const formData = new FormData();
   formData.append('file',          { uri: fileUri, type: mimeType, name: fileName });

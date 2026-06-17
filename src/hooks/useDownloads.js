@@ -6,6 +6,25 @@ import { Alert, Platform } from 'react-native';
 
 const STORAGE_KEY = 'gesa_downloads';
 
+// ─── MIME type from file extension ────────────────────────────────────────────
+function getMimeType(fileName) {
+  const ext = (fileName.split('.').pop() || '').toLowerCase();
+  switch (ext) {
+    case 'pdf':  return 'application/pdf';
+    case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'doc':  return 'application/msword';
+    case 'pptx': return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    case 'ppt':  return 'application/vnd.ms-powerpoint';
+    default:     return 'application/octet-stream';
+  }
+}
+
+// ─── Ensure the filename has a valid document extension ───────────────────────
+function ensureDocExtension(name, fallbackExt = 'pdf') {
+  if (/\.(pdf|docx|doc|pptx|ppt)$/i.test(name)) return name;
+  return `${name}.${fallbackExt}`;
+}
+
 export function useDownloads() {
   const [downloaded, setDownloaded] = useState({}); // { [url]: localPath }
   const [downloading, setDownloading] = useState({}); // { [id]: progress 0-1 }
@@ -43,22 +62,22 @@ export function useDownloads() {
       const clean = url.split('?')[0];
       const parts = clean.split('/');
       const last = decodeURIComponent(parts[parts.length - 1] || fallback);
-      // Always ensure the file ends in .pdf so Android knows how to open it
-      return last.endsWith('.pdf') ? last : `${last}.pdf`;
+      return ensureDocExtension(last);
     } catch {
-      return fallback.endsWith('.pdf') ? fallback : `${fallback}.pdf`;
+      return ensureDocExtension(fallback);
     }
   };
 
   const openLocalFile = async (localPath) => {
     if (Platform.OS === 'android') {
       const cUri = await FileSystem.getContentUriAsync(localPath);
+      const mimeType = getMimeType(localPath);
       await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
         data: cUri,
+        type: mimeType,
         flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
       });
     } else {
-      // iOS: expo-file-system URI can be opened directly via Linking
       const { openURL } = require('react-native').Linking;
       await openURL(localPath);
     }
@@ -69,9 +88,11 @@ export function useDownloads() {
     setDownloading((prev) => ({ ...prev, [id]: 0 }));
 
     try {
-      const resolvedName = fileName || getFileName(url, `${id}.pdf`);
-      const safeName = resolvedName.endsWith('.pdf') ? resolvedName : `${resolvedName}.pdf`;
-      const localPath = `${FileSystem.documentDirectory}${safeName}`;
+      // Use saved fileName first, then extract from URL
+      const resolvedName = fileName
+        ? ensureDocExtension(fileName)
+        : getFileName(url, `${id}.pdf`);
+      const localPath = `${FileSystem.documentDirectory}${resolvedName}`;
 
       const callback = (progressEvent) => {
         const progress =
@@ -119,6 +140,15 @@ export function useDownloads() {
         await persist(updated);
       } catch (e) {
         console.warn('useDownloads: failed to open local file', e);
+        // If it's a docx/pptx, hint the user they need an app
+        const ext = (localPath.split('.').pop() || '').toLowerCase();
+        if (ext === 'docx' || ext === 'pptx' || ext === 'doc' || ext === 'ppt') {
+          Alert.alert(
+            'App required',
+            'To open this file, you need Microsoft Word, PowerPoint, Google Docs, or WPS Office installed on your device.'
+          );
+          return;
+        }
       }
     }
     // Not downloaded yet — prompt the user
