@@ -129,7 +129,7 @@ export default function LeadersScreen() {
               <PersonAvatar
                 photoUrl={lec.photoUrl}
                 name={lec.name}
-                bgColor={lec.isPinned ? '#92400e' : AVATAR_COLORS[i % AVATAR_COLORS.length]}
+                bgColor={lec.pinnedRole ? '#92400e' : AVATAR_COLORS[i % AVATAR_COLORS.length]}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.lname}>{lec.name}</Text>
@@ -140,8 +140,8 @@ export default function LeadersScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-              {lec.isPinned
-                ? <GoldBadge label={lec.title?.includes('Head') ? 'HOD' : 'Dean'} />
+              {lec.pinnedRole === 'HOD'  ? <GoldBadge label="HOD" />
+                : lec.pinnedRole === 'Dean' ? <GoldBadge label="Dean" />
                 : <PurpleBadge label="Lec" />
               }
             </View>
