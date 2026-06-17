@@ -21,7 +21,11 @@
         "backgroundColor": "#07050f"
       },
       "package": "com.gesa.umat",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "plugins": [
       [
@@ -30,7 +34,9 @@
           "color": "#7c3aed"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-file-system",
+      "expo-intent-launcher"
     ],
     "extra": {
       "eas": {

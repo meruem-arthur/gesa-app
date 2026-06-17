@@ -69,8 +69,10 @@ export function useLecturers() {
         const snap = await getDocs(collection(db, 'lecturers'));
         const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         docs.sort((a, b) => {
-          if (a.isPinned && !b.isPinned) return -1;
-          if (!a.isPinned && b.isPinned) return 1;
+          const aPinned = !!a.pinnedRole;
+          const bPinned = !!b.pinnedRole;
+          if (aPinned && !bPinned) return -1;
+          if (!aPinned && bPinned) return 1;
           return a.name.localeCompare(b.name);
         });
         setData(docs);
@@ -152,6 +154,7 @@ export async function addExecutive(data) {
     name: data.name, position: data.position,
     order: Number(data.order) || 99,
     photoUrl: data.photoUrl || '',
+    phone: data.phone || '',
     bio: data.bio || '',
   });
 }
@@ -162,7 +165,7 @@ export async function addLecturer(data) {
   return addDoc(collection(db, 'lecturers'), {
     name: data.name, title: data.title || 'Lecturer',
     major: data.major || '', phone: data.phone || '',
-    email: data.email || '', isPinned: data.isPinned || false,
+    email: data.email || '', pinnedRole: data.pinnedRole || '',
     photoUrl: data.photoUrl || '',
   });
 }
@@ -175,6 +178,7 @@ export async function addEvent(data) {
     date: Timestamp.fromDate(new Date(data.date)),
     location: data.location || '', tag: data.tag || 'General',
     featured: data.featured || false,
+    imageUrl: data.imageUrl || '',
   });
 }
 export async function updateEvent(id, data) {
@@ -238,6 +242,15 @@ export async function getAllExams() {
   const q = query(collection(db, 'exams'), orderBy('startDate', 'asc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ─── REPORTS (student → admin) ─────────────────────────────────────────────────
+export async function addReport(message) {
+  return addDoc(collection(db, 'reports'), {
+    message: message.trim(),
+    status: 'open', // 'open' | 'resolved'
+    createdAt: Timestamp.now(),
+  });
 }
 
 // ─── PUSH NOTIFICATIONS ───────────────────────────────────────────────────────

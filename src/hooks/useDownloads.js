@@ -94,6 +94,13 @@ export function useDownloads() {
         : getFileName(url, `${id}.pdf`);
       const localPath = `${FileSystem.documentDirectory}${resolvedName}`;
 
+      // Cloudinary raw files (docx, pptx) need fl_attachment to force direct download
+      // Insert it into the Cloudinary URL before the filename segment
+      let downloadUrl = url;
+      if (/res\.cloudinary\.com/.test(url) && /\/raw\/upload\//.test(url)) {
+        downloadUrl = url.replace('/raw/upload/', '/raw/upload/fl_attachment/');
+      }
+
       const callback = (progressEvent) => {
         const progress =
           progressEvent.totalBytesWritten / progressEvent.totalBytesExpectedToWrite;
@@ -101,7 +108,7 @@ export function useDownloads() {
       };
 
       const downloadResumable = FileSystem.createDownloadResumable(
-        url,
+        downloadUrl,
         localPath,
         {},
         callback

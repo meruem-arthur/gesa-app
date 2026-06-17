@@ -109,6 +109,11 @@ export default function LeadersScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.lname}>{ex.name}</Text>
                 <Text style={styles.lrole}>{ex.position}</Text>
+                {!!ex.phone && (
+                  <TouchableOpacity onPress={() => Linking.openURL(`tel:${ex.phone}`)}>
+                    <Text style={styles.phone}>{ex.phone}</Text>
+                  </TouchableOpacity>
+                )}
               </View>
               <GoldBadge label={ex.position.split(' ')[0]} />
             </View>

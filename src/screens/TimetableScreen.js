@@ -146,9 +146,12 @@ export default function TimetableScreen() {
     if (byDay[day]) byDay[day].push(s);
   });
 
-  // Sort each day's slots by time
+  // Sort each day's slots chronologically using sortOrder (falls back to time-string parse for old data without it)
   DAYS.forEach(day => {
     byDay[day].sort((a, b) => {
+      if (a.sortOrder != null && b.sortOrder != null) {
+        return a.sortOrder - b.sortOrder;
+      }
       const timeA = a.time?.split(':')[0] || '0';
       const timeB = b.time?.split(':')[0] || '0';
       return parseInt(timeA) - parseInt(timeB);

@@ -21,6 +21,7 @@ import ExamCountdownScreen   from '../screens/ExamCountdownScreen';
 import ForumScreen           from '../screens/ForumScreen';
 import SemesterPlannerScreen from '../screens/SemesterPlannerScreen';
 import TimetableScreen       from '../screens/TimetableScreen';
+import ReportScreen          from '../screens/ReportScreen';
 import AdminScreen           from '../screens/AdminScreen';
 
 const Stack  = createStackNavigator();
@@ -47,6 +48,7 @@ const SIDEBAR_ITEMS = [
   { name: 'Forum',   label: 'Forum',    icon: 'chatbubbles-outline',   iconOn: 'chatbubbles',   component: ForumScreen           },
   { name: 'CWA',     label: 'CWA',      icon: 'calculator-outline',    iconOn: 'calculator',    component: CWAScreen             },
   { name: 'Planner', label: 'Planner',  icon: 'trending-up-outline',   iconOn: 'trending-up',   component: SemesterPlannerScreen },
+  { name: 'Report',  label: 'Report',   icon: 'flag-outline',          iconOn: 'flag',          component: ReportScreen          },
 ];
 
 const ADMIN_ITEM = {
