@@ -35,8 +35,7 @@
         }
       ],
       "expo-web-browser",
-      "expo-file-system",
-      "expo-intent-launcher"
+      "expo-file-system"
     ],
     "extra": {
       "eas": {
