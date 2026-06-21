@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Circle, Rect, Path, Line, Ellipse } from 'react-native-svg';
 import { getDocs, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
@@ -33,57 +32,6 @@ function useNow() {
     return () => clearInterval(t);
   }, []);
   return now;
-}
-
-// Simple SVG illustration: person studying at a desk
-function StudyingIllustration() {
-  return (
-    <Svg width={220} height={180} viewBox="0 0 220 180">
-      {/* Desk */}
-      <Rect x={30} y={120} width={160} height={10} rx={3} fill="#3b2f6e" />
-      <Rect x={45} y={130} width={8} height={40} rx={3} fill="#2e2458" />
-      <Rect x={167} y={130} width={8} height={40} rx={3} fill="#2e2458" />
-
-      {/* Books stacked on left */}
-      <Rect x={38} y={100} width={28} height={20} rx={2} fill="#7c3aed" />
-      <Rect x={40} y={96} width={24} height={20} rx={2} fill="#a78bfa" />
-      <Rect x={42} y={92} width={20} height={20} rx={2} fill="#6d28d9" />
-
-      {/* Open book / laptop in front of person */}
-      <Rect x={90} y={106} width={60} height={14} rx={2} fill="#1e1b4b" />
-      <Rect x={92} y={108} width={27} height={10} rx={1} fill="#312e81" />
-      <Rect x={121} y={108} width={27} height={10} rx={1} fill="#312e81" />
-      {/* book spine */}
-      <Rect x={119} y={107} width={2} height={12} rx={1} fill="#4338ca" />
-
-      {/* Body */}
-      <Rect x={95} y={68} width={30} height={38} rx={8} fill="#4f46e5" />
-
-      {/* Head */}
-      <Circle cx={110} cy={56} r={16} fill="#fcd34d" />
-      {/* Hair */}
-      <Path d="M94 52 Q110 36 126 52" fill="#1c1048" />
-      {/* Eyes */}
-      <Circle cx={104} cy={56} r={2} fill="#1c1048" />
-      <Circle cx={116} cy={56} r={2} fill="#1c1048" />
-      {/* Mouth — small smile */}
-      <Path d="M106 63 Q110 67 114 63" stroke="#92400e" strokeWidth={1.5} fill="none" strokeLinecap="round" />
-
-      {/* Left arm reaching to book */}
-      <Path d="M96 78 Q78 90 88 112" stroke="#4f46e5" strokeWidth={9} strokeLinecap="round" fill="none" />
-      {/* Right arm */}
-      <Path d="M124 78 Q138 90 130 112" stroke="#4f46e5" strokeWidth={9} strokeLinecap="round" fill="none" />
-
-      {/* Pencil in right hand */}
-      <Rect x={129} y={106} width={4} height={18} rx={1} fill="#fbbf24" transform="rotate(-20 131 115)" />
-      <Path d="M127 122 L131 128 L135 122" fill="#f87171" transform="rotate(-20 131 125)" />
-
-      {/* Stars / sparkles top right */}
-      <Path d="M170 20 L172 26 L178 24 L172 28 L170 34 L168 28 L162 24 L168 26 Z" fill="#fbbf24" opacity={0.7} />
-      <Path d="M190 40 L191 44 L195 42 L191 46 L190 50 L189 46 L185 42 L189 44 Z" fill="#a78bfa" opacity={0.6} />
-      <Circle cx={155} cy={35} r={2} fill="#fbbf24" opacity={0.5} />
-    </Svg>
-  );
 }
 
 function Ticker({ examDate, now }) {
@@ -154,9 +102,13 @@ export default function ExamCountdownScreen() {
 
       {!loading && !error && (
         <>
-          {/* ── 2. SVG Illustration ── */}
+          {/* ── 2. Meme of the day ── */}
           <View style={styles.illustrationWrap}>
-            <StudyingIllustration />
+            <Image
+              source={require('../../assets/exam-meme.jpg')}
+              style={styles.memeImage}
+              resizeMode="contain"
+            />
           </View>
 
           {hasExams && nextExam ? (
@@ -211,6 +163,7 @@ const styles = StyleSheet.create({
   title:            { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   sub:              { color: COLORS.muted, fontSize: 12, marginTop: 5 },
   illustrationWrap: { alignItems: 'center', paddingVertical: S.lg },
+  memeImage:        { width: 260, height: 220, borderRadius: RADIUS.md },
   card:             { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, marginHorizontal: S.lg, marginBottom: S.md, padding: S.lg },
   examTitle:        { color: COLORS.text, fontSize: 17, fontWeight: '700', marginBottom: S.sm, textAlign: 'center' },
   metaRow:          { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },

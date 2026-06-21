@@ -244,6 +244,23 @@ export async function getAllExams() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+export function useSoftware() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const q = query(collection(db, 'software'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { setError(e.message); }
+      finally { setLoading(false); }
+    })();
+  }, []);
+  return { data, loading, error };
+}
+
 // ─── REPORTS (student → admin) ─────────────────────────────────────────────────
 export async function addReport(message) {
   return addDoc(collection(db, 'reports'), {

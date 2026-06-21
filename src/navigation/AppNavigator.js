@@ -22,6 +22,7 @@ import ForumScreen           from '../screens/ForumScreen';
 import SemesterPlannerScreen from '../screens/SemesterPlannerScreen';
 import TimetableScreen       from '../screens/TimetableScreen';
 import ReportScreen          from '../screens/ReportScreen';
+import SoftwareScreen        from '../screens/SoftwareScreen';
 import AdminScreen           from '../screens/AdminScreen';
 
 const Stack  = createStackNavigator();
@@ -46,9 +47,10 @@ const SIDEBAR_ITEMS = [
   { name: 'Events',  label: 'Events',   icon: 'calendar-outline',      iconOn: 'calendar',      component: EventsScreen          },
   { name: 'Exams',   label: 'Exams',    icon: 'alarm-outline',         iconOn: 'alarm',         component: ExamCountdownScreen   },
   { name: 'Forum',   label: 'Forum',    icon: 'chatbubbles-outline',   iconOn: 'chatbubbles',   component: ForumScreen           },
-  { name: 'CWA',     label: 'CWA',      icon: 'calculator-outline',    iconOn: 'calculator',    component: CWAScreen             },
-  { name: 'Planner', label: 'Planner',  icon: 'trending-up-outline',   iconOn: 'trending-up',   component: SemesterPlannerScreen },
-  { name: 'Report',  label: 'Report',   icon: 'flag-outline',          iconOn: 'flag',          component: ReportScreen          },
+  { name: 'CWA',      label: 'CWA',      icon: 'calculator-outline',    iconOn: 'calculator',    component: CWAScreen             },
+  { name: 'Planner',  label: 'Planner',  icon: 'trending-up-outline',   iconOn: 'trending-up',   component: SemesterPlannerScreen },
+  { name: 'Software', label: 'Software', icon: 'desktop-outline',       iconOn: 'desktop',       component: SoftwareScreen        },
+  { name: 'Report',   label: 'Report',   icon: 'flag-outline',          iconOn: 'flag',          component: ReportScreen          },
 ];
 
 const ADMIN_ITEM = {
