@@ -261,6 +261,39 @@ export function useSoftware() {
   return { data, loading, error };
 }
 
+// ─── TUTORIALS ────────────────────────────────────────────────────────────────
+export function useTutorials() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const q = query(collection(db, 'tutorials'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { setError(e.message); }
+      finally { setLoading(false); }
+    })();
+  }, []);
+  return { data, loading, error };
+}
+
+export async function addTutorial(data) {
+  return addDoc(collection(db, 'tutorials'), {
+    title: data.title, software: data.software || '',
+    youtubeUrl: data.youtubeUrl, thumbnailUrl: data.thumbnailUrl || '',
+    description: data.description || '',
+    createdAt: Timestamp.now(),
+  });
+}
+export async function deleteTutorial(id) { return deleteDoc(doc(db, 'tutorials', id)); }
+export async function getAllTutorials() {
+  const q = query(collection(db, 'tutorials'), orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 // ─── REPORTS (student → admin) ─────────────────────────────────────────────────
 export async function addReport(message) {
   return addDoc(collection(db, 'reports'), {

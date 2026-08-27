@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
+import * as Sharing from 'expo-sharing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, Platform } from 'react-native';
 
@@ -70,13 +71,26 @@ export function useDownloads() {
 
   const openLocalFile = async (localPath) => {
     if (Platform.OS === 'android') {
-      const cUri = await FileSystem.getContentUriAsync(localPath);
-      const mimeType = getMimeType(localPath);
-      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-        data: cUri,
-        type: mimeType,
-        flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-      });
+      try {
+        const cUri = await FileSystem.getContentUriAsync(localPath);
+        const mimeType = getMimeType(localPath);
+        await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+          data: cUri,
+          type: mimeType,
+          flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+        });
+      } catch (e) {
+        // IntentLauncher can fail on some Android versions/devices
+        // (no app registered for the VIEW intent, permission quirks, etc.)
+        // Fall back to the native share sheet, which can always open the file.
+        console.warn('useDownloads: IntentLauncher failed, falling back to sharing', e);
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(localPath, { mimeType: getMimeType(localPath) });
+        } else {
+          throw e;
+        }
+      }
     } else {
       const { openURL } = require('react-native').Linking;
       await openURL(localPath);

@@ -25,6 +25,10 @@ export default function MaterialsScreen() {
   const { data, loading, error } = useMaterials(level, sem);
   const { downloaded, downloading, download, openItem } = useDownloads();
 
+  // Materials from the current level/semester that are already saved locally —
+  // surfaced up top so students can jump straight to them.
+  const downloadedInView = data.filter((course) => !!downloaded[course.fileUrl]);
+
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
@@ -35,6 +39,35 @@ export default function MaterialsScreen() {
         <Text style={styles.heroTitle}>Learning Materials</Text>
         <Text style={styles.heroSub}>Browse by level and semester</Text>
       </View>
+
+      {downloadedInView.length > 0 && (
+        <>
+          <View style={styles.downloadedHeader}>
+            <Ionicons name="checkmark-circle" size={13} color="#22c55e" />
+            <Text style={styles.downloadedHeaderTx}>Downloaded</Text>
+          </View>
+          {downloadedInView.map((course) => (
+            <TouchableOpacity
+              key={`dl-${course.id}`}
+              style={styles.crow}
+              onPress={() => openItem(course.fileUrl)}
+              activeOpacity={0.75}
+            >
+              <View style={styles.crowLeft}>
+                <View style={styles.cico}>
+                  <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.ccode}>{course.courseCode}</Text>
+                  <Text style={styles.cname}>{course.courseName}</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.dim} />
+            </TouchableOpacity>
+          ))}
+          <View style={styles.sectionDivider} />
+        </>
+      )}
 
       <PillRow options={LEVELS} selected={level} onSelect={setLevel} />
       <TabRow tabs={SEMESTERS} selected={sem} onSelect={setSem} />
@@ -100,6 +133,9 @@ const styles = StyleSheet.create({
   heroBadgeTx: { color: COLORS.gold3, fontSize: 10 },
   heroTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   heroSub: { color: COLORS.muted, fontSize: 12, marginTop: 5 },
+  downloadedHeader: { flexDirection: 'row', alignItems: 'center', gap: 5, marginHorizontal: S.lg, marginTop: S.lg, marginBottom: S.sm },
+  downloadedHeaderTx: { color: '#22c55e', fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
+  sectionDivider: { height: 1, backgroundColor: COLORS.border, marginHorizontal: S.lg, marginTop: S.sm, marginBottom: 4 },
   crow: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, marginHorizontal: S.lg, marginBottom: 8, padding: S.md },
   crowLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: S.md },
   cico: { width: 31, height: 31, borderRadius: S.sm, backgroundColor: 'rgba(212,160,23,0.11)', alignItems: 'center', justifyContent: 'center' },

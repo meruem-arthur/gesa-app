@@ -185,29 +185,34 @@ export default function HomeScreen({ navigation }) {
 
         {/* Quick access */}
         <SectionLabel>Quick access</SectionLabel>
-        <View style={styles.qgrid}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.qrow}
+          decelerationRate="fast"
+          snapToInterval={168}
+          snapToAlignment="start"
+        >
           {[
-            { label: 'Announcements', sub: 'Latest notices',  icon: 'notifications-outline', to: 'Notice'    },
-            { label: 'Leadership',    sub: 'Exco & Lecturers',icon: 'people-outline',         to: 'Leaders'   },
-            { label: 'Materials',     sub: 'Level 100–400',   icon: 'book-outline',           to: 'Materials' },
-            { label: 'Past Questions',sub: 'All years',        icon: 'document-text-outline', to: 'PastQ'     },
-            { label: 'Exam Countdown',sub: 'Live timer',       icon: 'alarm-outline',         to: 'Exams'     },
-            { label: 'Forum',         sub: 'Q&A · Anonymous', icon: 'chatbubbles-outline',    to: 'Forum'     },
+            { label: 'Announcements', sub: 'Latest notices',   icon: 'notifications-outline', to: 'Notice',    color: '#7c3aed' },
+            { label: 'Leadership',    sub: 'Exco & Lecturers', icon: 'people-outline',         to: 'Leaders',   color: '#2563eb' },
+            { label: 'Materials',     sub: 'Level 100–400',    icon: 'book-outline',           to: 'Materials', color: '#0891b2' },
+            { label: 'Past Questions',sub: 'All years',        icon: 'document-text-outline',  to: 'PastQ',     color: '#7c3aed' },
+            { label: 'Exam Countdown',sub: 'Live timer',       icon: 'alarm-outline',           to: 'Exams',     color: '#d97706' },
+            { label: 'Forum',         sub: 'Q&A · Anonymous',  icon: 'chatbubbles-outline',     to: 'Forum',     color: '#c2410c' },
           ].map(item => (
             <TouchableOpacity
               key={item.label}
-              style={styles.qcard}
+              style={[styles.qcard, { backgroundColor: item.color }]}
               onPress={() => navigation.navigate(item.to)}
-              activeOpacity={0.75}
+              activeOpacity={0.85}
             >
-              <View style={styles.qiconBox}>
-                <Ionicons name={item.icon} size={18} color={COLORS.gold2} />
-              </View>
+              <Ionicons name={item.icon} size={28} color="#fff" />
               <Text style={styles.qtitle}>{item.label}</Text>
               <Text style={styles.qsub}>{item.sub}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         {/* Upcoming events */}
         <SectionLabel>Upcoming events</SectionLabel>
@@ -267,11 +272,16 @@ const styles = StyleSheet.create({
   wotdDef:      { color: COLORS.muted, fontSize: 13, lineHeight: 20, marginTop: S.sm },
   wotdEx:       { color: COLORS.dim, fontSize: 12, fontStyle: 'italic', marginTop: S.sm, paddingLeft: S.sm, borderLeftWidth: 2, borderLeftColor: 'rgba(212,160,23,0.28)', lineHeight: 18 },
 
-  qgrid:        { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: S.lg, gap: 10 },
-  qcard:        { width: '47.5%', backgroundColor: 'rgba(23,19,46,0.80)', borderWidth: 1, borderColor: 'rgba(180,130,255,0.15)', borderRadius: RADIUS.lg, padding: S.md },
-  qiconBox:     { width: 33, height: 33, backgroundColor: 'rgba(212,160,23,0.14)', borderRadius: S.sm, alignItems: 'center', justifyContent: 'center', marginBottom: S.sm },
-  qtitle:       { color: COLORS.text, fontSize: 12, fontWeight: '600' },
-  qsub:         { color: COLORS.muted, fontSize: 10, marginTop: 2 },
+  qrow:         { paddingLeft: S.lg, paddingRight: S.xl, gap: 12 },
+  qcard:        {
+    width: 160, height: 180, borderRadius: 16, padding: S.lg,
+    justifyContent: 'flex-start',
+    // Lifted / elevated shadow effect
+    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 10,
+    elevation: 6,
+  },
+  qtitle:       { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: S.md },
+  qsub:         { color: 'rgba(255,255,255,0.75)', fontSize: 11, marginTop: 3 },
 
   evRow:        { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: 'rgba(23,19,46,0.80)', borderWidth: 1, borderColor: 'rgba(180,130,255,0.15)', borderRadius: RADIUS.md, marginHorizontal: S.lg, marginBottom: 10, padding: S.md },
   evDate:       { backgroundColor: 'rgba(212,160,23,0.13)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.18)', borderRadius: S.sm, paddingHorizontal: S.sm, paddingVertical: 6, alignItems: 'center', minWidth: 40 },

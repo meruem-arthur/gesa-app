@@ -149,6 +149,17 @@ export default function SoftwareScreen() {
                 <Text style={styles.openBtnTx}>Open Link</Text>
               </TouchableOpacity>
             </View>
+
+            {!!sw.installVideoUrl && (
+              <TouchableOpacity
+                style={styles.installBtn}
+                onPress={() => handleOpenLink(sw.installVideoUrl)}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="play-circle-outline" size={15} color="#c084fc" />
+                <Text style={styles.installBtnTx}>Watch Install Guide</Text>
+              </TouchableOpacity>
+            )}
           </View>
         );
       })}
@@ -191,4 +202,6 @@ const styles = StyleSheet.create({
   copyBtnTx:   { color: COLORS.gold2, fontSize: 13, fontWeight: '600' },
   openBtn:     { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: RADIUS.md, backgroundColor: COLORS.gold2 },
   openBtnTx:   { color: '#000', fontSize: 13, fontWeight: '700' },
+  installBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(124,58,237,0.35)', backgroundColor: 'rgba(124,58,237,0.08)', marginTop: S.sm },
+  installBtnTx:{ color: '#c084fc', fontSize: 13, fontWeight: '600' },
 });

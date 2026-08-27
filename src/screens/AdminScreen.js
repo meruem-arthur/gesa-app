@@ -17,6 +17,7 @@ import {
   addMaterial, deleteMaterial, getAllMaterials,
   addPastQuestion, deletePastQuestion, getAllPastQuestions,
   addExam, deleteExam, getAllExams,
+  addTutorial, deleteTutorial, getAllTutorials,
   getAllPushTokens,
 } from '../hooks/useFirestore';
 import { db } from '../../firebase';
@@ -632,6 +633,54 @@ function ExamsSection() {
   );
 }
 
+// ─── TUTORIALS ────────────────────────────────────────────────────────────────
+function TutorialsSection() {
+  const [list, setList]         = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm]         = useState({ title: '', software: '', youtubeUrl: '', thumbnailUrl: '', description: '' });
+  const [saving, setSaving]     = useState(false);
+
+  const refresh = async () => { setLoading(true); try { setList(await getAllTutorials()); } finally { setLoading(false); } };
+  useEffect(() => { refresh(); }, []);
+
+  async function handleSave() {
+    if (!form.title || !form.youtubeUrl) { Alert.alert('Fill title and YouTube link'); return; }
+    setSaving(true);
+    try {
+      await addTutorial(form); await refresh();
+      setForm({ title: '', software: '', youtubeUrl: '', thumbnailUrl: '', description: '' }); setShowForm(false);
+      Alert.alert('✅ Tutorial added!');
+    } catch (e) { Alert.alert('Error', e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function handleDelete(id) {
+    Alert.alert('Delete Tutorial', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => { await deleteTutorial(id); await refresh(); } },
+    ]);
+  }
+
+  return (
+    <View style={sec.box}>
+      <SectionHeader title="Tutorials" icon="play-circle-outline" onAdd={() => setShowForm(v => !v)} />
+      {showForm && (
+        <View style={sec.form}>
+          <Field label="Title" value={form.title} onChangeText={v => setForm(f => ({ ...f, title: v }))} placeholder="e.g. Getting started with ArcGIS Pro" />
+          <Field label="Software" value={form.software} onChangeText={v => setForm(f => ({ ...f, software: v }))} placeholder="e.g. ArcGIS Pro" />
+          <Field label="YouTube Link" value={form.youtubeUrl} onChangeText={v => setForm(f => ({ ...f, youtubeUrl: v }))} placeholder="https://youtube.com/…" />
+          <Field label="Thumbnail URL (optional)" value={form.thumbnailUrl} onChangeText={v => setForm(f => ({ ...f, thumbnailUrl: v }))} placeholder="https://…" />
+          <Field label="Description (optional)" value={form.description} onChangeText={v => setForm(f => ({ ...f, description: v }))} multiline />
+          <FormBtns onCancel={() => setShowForm(false)} onSave={handleSave} saving={saving} />
+        </View>
+      )}
+      {loading ? <ActivityIndicator color={COLORS.gold2} style={{ margin: S.md }} />
+        : list.map(t => <ItemRow key={t.id} name={t.title} sub={t.software || 'General'} onDelete={() => handleDelete(t.id)} />)}
+    </View>
+  );
+}
+
 // ─── PUSH NOTIFICATIONS ───────────────────────────────────────────────────────
 function PushNotificationSection() {
   const [title,   setTitle]   = useState('');
@@ -716,6 +765,7 @@ export default function AdminScreen() {
     { key: 'mat',   label: 'Materials',      icon: 'book-outline',          component: <MaterialsSection /> },
     { key: 'pq',    label: 'Past Questions', icon: 'document-text-outline', component: <PastQuestionsSection /> },
     { key: 'exams', label: 'Exams',          icon: 'alarm-outline',         component: <ExamsSection /> },
+    { key: 'tutorials', label: 'Tutorials',  icon: 'play-circle-outline',   component: <TutorialsSection /> },
     { key: 'push',  label: 'Notifications',  icon: 'notifications-outline', component: <PushNotificationSection /> },
   ];
 
