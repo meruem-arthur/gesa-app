@@ -15,7 +15,19 @@ export function useWordOfDay() {
   useEffect(() => {
     (async () => {
       try {
-        const q = query(collection(db, 'wordOfTheDay'), orderBy('date', 'desc'), limit(1));
+        // 'date' is stored as a 'YYYY-MM-DD' string, so lexicographic
+        // comparison lines up with calendar order. We want the most
+        // recent word dated today or earlier — not simply the word with
+        // the latest date ever entered (that ignores what day it actually
+        // is, so a word scheduled ahead of time — or entered out of
+        // order — would show forever once it became the max).
+        const todayStr = new Date().toISOString().split('T')[0];
+        const q = query(
+          collection(db, 'wordOfTheDay'),
+          where('date', '<=', todayStr),
+          orderBy('date', 'desc'),
+          limit(1)
+        );
         const snap = await getDocs(q);
         if (!snap.empty) setWord({ id: snap.docs[0].id, ...snap.docs[0].data() });
       } catch (e) { setError(e.message); }
@@ -144,6 +156,31 @@ export function useAnnouncements() {
       finally { setLoading(false); }
     })();
   }, []);
+  return { data, loading, error };
+}
+
+// Exams timetable, scoped to a level (100/200/300/400). Grouped by date on
+// the screen side — if nothing's been uploaded for this level yet, `data`
+// just comes back empty and the screen shows a "check back later" state.
+export function useExamsTimetable(level) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const q = query(
+          collection(db, 'examsTimetable'),
+          where('level', '==', level),
+          orderBy('date', 'asc'),
+        );
+        const snap = await getDocs(q);
+        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { setError(e.message); }
+      finally { setLoading(false); }
+    })();
+  }, [level]);
   return { data, loading, error };
 }
 

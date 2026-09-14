@@ -4,7 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { getDocs, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
-import { Loader, ErrorState, EmptyState } from '../components/SharedComponents';
+import { Loader, ErrorState, EmptyState, PillRow } from '../components/SharedComponents';
+import { useExamsTimetable } from '../hooks/useFirestore';
 
 const S = SPACING;
 
@@ -18,6 +19,55 @@ const QUOTES = [
   "Success is the sum of small efforts repeated day in and day out.",
   "Believe you can and you're halfway there.",
 ];
+
+const LEVELS = [
+  { label: 'Level 100', value: 100 },
+  { label: 'Level 200', value: 200 },
+  { label: 'Level 300', value: 300 },
+  { label: 'Level 400', value: 400 },
+];
+
+const SESSION_COLOR = { Morning: COLORS.green, Afternoon: '#f59e0b', Evening: COLORS.purple };
+
+function ExamSlotCard({ slot }) {
+  const color = SESSION_COLOR[slot.sessionLabel] || COLORS.purple;
+  return (
+    <View style={ec.card}>
+      <View style={ec.top}>
+        <Text style={ec.code}>{slot.code}</Text>
+        {!!slot.sessionLabel && (
+          <View style={[ec.sessionBadge, { backgroundColor: color + '22' }]}>
+            <Text style={[ec.sessionText, { color }]}>{slot.sessionLabel}</Text>
+          </View>
+        )}
+      </View>
+      {!!slot.name && <Text style={ec.name}>{slot.name}</Text>}
+      <View style={ec.metaRow}>
+        {!!slot.room && (
+          <View style={ec.metaItem}>
+            <Ionicons name="location-outline" size={11} color={COLORS.muted} />
+            <Text style={ec.metaText}>{slot.room}</Text>
+          </View>
+        )}
+        {!!slot.invigilator && (
+          <View style={ec.metaItem}>
+            <Ionicons name="person-outline" size={11} color={COLORS.dim} />
+            <Text style={ec.metaText}>{slot.invigilator}</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function ExamDaySection({ dateLabel, slots }) {
+  return (
+    <View style={eds.container}>
+      <Text style={eds.dateLabel}>{dateLabel}</Text>
+      {slots.map((slot, i) => <ExamSlotCard key={i} slot={slot} />)}
+    </View>
+  );
+}
 
 function toDate(val) {
   if (!val) return new Date();
@@ -61,7 +111,10 @@ export default function ExamCountdownScreen() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
   const [quote]               = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+  const [level, setLevel]     = useState(100);
   const now = useNow();
+
+  const { data: ttSlots, loading: ttLoading } = useExamsTimetable(level);
 
   useEffect(() => {
     (async () => {
@@ -84,6 +137,18 @@ export default function ExamCountdownScreen() {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
   }
+
+  // Group this level's exam slots by date, in date order
+  const ttByDate = [];
+  const ttDateIndex = {};
+  ttSlots.forEach(slot => {
+    const key = toDate(slot.date).toDateString();
+    if (ttDateIndex[key] == null) {
+      ttDateIndex[key] = ttByDate.length;
+      ttByDate.push({ dateLabel: fmtDate(slot.date), slots: [] });
+    }
+    ttByDate[ttDateIndex[key]].slots.push(slot);
+  });
 
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
@@ -142,6 +207,24 @@ export default function ExamCountdownScreen() {
             <EmptyState icon="📅" message="No exams scheduled yet. Check back soon." />
           )}
 
+          {/* ── 6.5 Exams Timetable, by level ── */}
+          <View style={styles.ttSection}>
+            <Text style={styles.ttTitle}>Exams Timetable</Text>
+            <PillRow options={LEVELS} selected={level} onSelect={setLevel} />
+
+            {ttLoading ? (
+              <Loader />
+            ) : ttByDate.length === 0 ? (
+              <EmptyState icon="🗓️" message="Check back later for the exams timetable." />
+            ) : (
+              <View style={{ paddingHorizontal: S.lg }}>
+                {ttByDate.map((day, i) => (
+                  <ExamDaySection key={i} dateLabel={day.dateLabel} slots={day.slots} />
+                ))}
+              </View>
+            )}
+          </View>
+
           {/* ── 7. Motivational quote ── */}
           <View style={styles.quoteWrap}>
             <Ionicons name="chatbubble-ellipses-outline" size={14} color={COLORS.gold3} style={{ marginBottom: 6 }} />
@@ -169,8 +252,27 @@ const styles = StyleSheet.create({
   metaRow:          { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   metaTx:           { color: COLORS.muted, fontSize: 12 },
   note:             { color: COLORS.dim, fontSize: 12, marginTop: S.sm, fontStyle: 'italic', borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: S.sm },
+  ttSection:        { marginTop: S.lg },
+  ttTitle:          { color: COLORS.text, fontSize: 15, fontWeight: '700', marginBottom: S.sm, marginHorizontal: S.lg },
   quoteWrap:        { marginHorizontal: S.lg, marginTop: S.md, marginBottom: S.lg, alignItems: 'center', padding: S.lg, backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border },
   quoteTx:          { color: COLORS.muted, fontSize: 12, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
+});
+
+const eds = StyleSheet.create({
+  container:  { marginBottom: S.md },
+  dateLabel:  { color: COLORS.gold3, fontSize: 12, fontWeight: '700', marginBottom: S.sm, marginTop: S.sm },
+});
+
+const ec = StyleSheet.create({
+  card:         { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, marginBottom: 8 },
+  top:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  code:         { color: COLORS.gold3, fontSize: 13, fontWeight: '800' },
+  sessionBadge: { borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 2 },
+  sessionText:  { fontSize: 10, fontWeight: '700' },
+  name:         { color: COLORS.text, fontSize: 13, fontWeight: '500', marginBottom: S.sm },
+  metaRow:      { flexDirection: 'row', gap: S.lg, flexWrap: 'wrap' },
+  metaItem:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText:     { color: COLORS.muted, fontSize: 11 },
 });
 
 const tk = StyleSheet.create({
