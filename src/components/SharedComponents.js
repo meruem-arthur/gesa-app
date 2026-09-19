@@ -62,7 +62,12 @@ export function OfflineBanner({ visible, savedAt }) {
 }
 
 // ── Pull-to-refresh control styled for the app ───────────────
-export function AppRefreshControl({ refreshing, onRefresh }) {
+// Use as: <ScrollView refreshControl={appRefreshControl(refreshing, refresh)} />
+// This must return a real <RefreshControl> element. On Android, ScrollView
+// clones the element it is given and injects the scrollable content as its
+// children, so wrapping RefreshControl in our own component (that doesn't pass
+// children through) makes the whole screen render empty.
+export function appRefreshControl(refreshing, onRefresh) {
   return (
     <RefreshControl
       refreshing={!!refreshing}

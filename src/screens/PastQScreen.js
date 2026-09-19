@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { usePastQuestions } from '../hooks/useFirestore';
 import { useDownloads } from '../hooks/useDownloads';
-import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
+import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 
 const LEVELS = [
   { label: 'Level 100', value: 100 },
@@ -38,7 +38,7 @@ export default function PastQScreen() {
     <ScrollView
       style={styles.screen}
       showsVerticalScrollIndicator={false}
-      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+      refreshControl={appRefreshControl(refreshing, refresh)}
     >
       <View style={styles.hero}>
         <View style={styles.heroBadgePurple}>

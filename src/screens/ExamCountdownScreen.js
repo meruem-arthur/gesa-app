@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
-import { Loader, ErrorState, EmptyState, PillRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
+import { Loader, ErrorState, EmptyState, PillRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 import { useExamsTimetable, useExams } from '../hooks/useFirestore';
 
 const S = SPACING;
@@ -150,7 +150,7 @@ export default function ExamCountdownScreen() {
     <ScrollView
       style={styles.screen}
       showsVerticalScrollIndicator={false}
-      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+      refreshControl={appRefreshControl(refreshing, refresh)}
     >
       {/* ── 1. Hero ── */}
       <View style={styles.hero}>

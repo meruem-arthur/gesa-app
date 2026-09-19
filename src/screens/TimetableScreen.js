@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { useTimetable } from '../hooks/useFirestore';
-import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
+import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 
 const S = SPACING;
 
@@ -140,7 +140,7 @@ export default function TimetableScreen() {
     <ScrollView
       style={styles.screen}
       showsVerticalScrollIndicator={false}
-      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+      refreshControl={appRefreshControl(refreshing, refresh)}
     >
       {/* Hero */}
       <View style={styles.hero}>
