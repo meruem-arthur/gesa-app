@@ -7,6 +7,13 @@ import { Alert, Platform } from 'react-native';
 
 const STORAGE_KEY = 'gesa_downloads';
 
+// Only the file NAME is saved, not the full path. iOS moves the app's documents
+// folder when the app is updated/restored, so a saved absolute path stops
+// resolving and the file looks "not downloaded" even though it is still there.
+// Old entries (absolute paths) are normalised to just the name on load.
+const toName = (p) => String(p).split('/').pop();
+const resolvePath = (name) => `${FileSystem.documentDirectory}${name}`;
+
 // ─── MIME type from file extension ────────────────────────────────────────────
 function getMimeType(fileName) {
   const ext = (fileName.split('.').pop() || '').toLowerCase();
@@ -37,12 +44,13 @@ export function useDownloads() {
         if (raw) {
           const map = JSON.parse(raw);
           const verified = {};
-          for (const [url, localPath] of Object.entries(map)) {
+          for (const [url, stored] of Object.entries(map)) {
+            const localPath = resolvePath(toName(stored));
             const info = await FileSystem.getInfoAsync(localPath);
             if (info.exists) verified[url] = localPath;
           }
           setDownloaded(verified);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(verified));
+          await persist(verified); // also rewrites old absolute paths as names
         }
       } catch (e) {
         console.warn('useDownloads: failed to load', e);
@@ -52,9 +60,36 @@ export function useDownloads() {
 
   const persist = async (map) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+      const names = {};
+      for (const [url, localPath] of Object.entries(map)) names[url] = toName(localPath);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(names));
     } catch (e) {
       console.warn('useDownloads: failed to persist', e);
+    }
+  };
+
+  // Materials and Past Questions each have their own copy of this hook. Merge into
+  // what's stored instead of writing our (possibly stale) in-memory map, otherwise
+  // a download made on one screen can be erased by a download made on the other.
+  const saveEntry = async (url, localPath) => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const stored = raw ? JSON.parse(raw) : {};
+      stored[url] = toName(localPath);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    } catch (e) {
+      console.warn('useDownloads: failed to save entry', e);
+    }
+  };
+
+  const removeEntry = async (url) => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const stored = raw ? JSON.parse(raw) : {};
+      delete stored[url];
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    } catch (e) {
+      console.warn('useDownloads: failed to remove entry', e);
     }
   };
 
@@ -130,9 +165,8 @@ export function useDownloads() {
 
       const result = await downloadResumable.downloadAsync();
 
-      const updated = { ...downloaded, [url]: result.uri };
-      setDownloaded(updated);
-      await persist(updated);
+      setDownloaded((prev) => ({ ...prev, [url]: result.uri }));
+      await saveEntry(url, result.uri);
     } catch (e) {
       console.warn('useDownloads: download failed', e);
       Alert.alert('Download failed', 'Could not download this file. Please try again.');
@@ -143,7 +177,7 @@ export function useDownloads() {
         return next;
       });
     }
-  }, [downloading, downloaded]);
+  }, [downloading]);
 
   const openItem = useCallback(async (url) => {
     const localPath = downloaded[url];
@@ -155,10 +189,12 @@ export function useDownloads() {
           return;
         }
         // File was in AsyncStorage but deleted from disk — clean it up
-        const updated = { ...downloaded };
-        delete updated[url];
-        setDownloaded(updated);
-        await persist(updated);
+        setDownloaded((prev) => {
+          const next = { ...prev };
+          delete next[url];
+          return next;
+        });
+        await removeEntry(url);
       } catch (e) {
         console.warn('useDownloads: failed to open local file', e);
         // If it's a docx/pptx, hint the user they need an app

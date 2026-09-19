@@ -1,187 +1,117 @@
-import { useState, useEffect } from 'react';
 import {
   collection, query, orderBy, where,
   getDocs, addDoc, updateDoc, deleteDoc,
   doc, limit, Timestamp, setDoc,
 } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useCachedQuery, fetchDocs } from './useCachedQuery';
 
 // ─── READ HOOKS ───────────────────────────────────────────────────────────────
+// All of these go through useCachedQuery, so they work offline: the last
+// successful result is saved on the phone and shown when there's no network.
+// Each returns { data, loading, error } as before, plus:
+//   refresh()    – re-fetch (wire to pull-to-refresh)
+//   refreshing   – true while refresh() is running
+//   offline      – true when the last attempt couldn't reach the server
+//   savedAt      – ms timestamp of the copy being shown
 
 export function useWordOfDay() {
-  const [word, setWord] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        // 'date' is stored as a 'YYYY-MM-DD' string, so lexicographic
-        // comparison lines up with calendar order. We want the most
-        // recent word dated today or earlier — not simply the word with
-        // the latest date ever entered (that ignores what day it actually
-        // is, so a word scheduled ahead of time — or entered out of
-        // order — would show forever once it became the max).
-        const todayStr = new Date().toISOString().split('T')[0];
-        const q = query(
-          collection(db, 'wordOfTheDay'),
-          where('date', '<=', todayStr),
-          orderBy('date', 'desc'),
-          limit(1)
-        );
-        const snap = await getDocs(q);
-        if (!snap.empty) setWord({ id: snap.docs[0].id, ...snap.docs[0].data() });
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { word, loading, error };
+  const { data, ...rest } = useCachedQuery('wordOfTheDay', async () => {
+    // 'date' is stored as a 'YYYY-MM-DD' string, so lexicographic
+    // comparison lines up with calendar order. We want the most
+    // recent word dated today or earlier — not simply the word with
+    // the latest date ever entered (that ignores what day it actually
+    // is, so a word scheduled ahead of time — or entered out of
+    // order — would show forever once it became the max).
+    const todayStr = new Date().toISOString().split('T')[0];
+    const q = query(
+      collection(db, 'wordOfTheDay'),
+      where('date', '<=', todayStr),
+      orderBy('date', 'desc'),
+      limit(1)
+    );
+    const { data: docs, fromCache } = await fetchDocs(q);
+    return { data: docs[0] || null, fromCache };
+  }, null);
+  return { word: data, ...rest };
 }
 
 export function useEvents() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const q = query(collection(db, 'events'), orderBy('date', 'asc'));
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { data, loading, error };
+  return useCachedQuery('events', () =>
+    fetchDocs(query(collection(db, 'events'), orderBy('date', 'asc'))));
 }
 
 export function useExecutives() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const q = query(collection(db, 'executives'), orderBy('order', 'asc'));
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { data, loading, error };
+  return useCachedQuery('executives', () =>
+    fetchDocs(query(collection(db, 'executives'), orderBy('order', 'asc'))));
 }
 
 export function useLecturers() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const snap = await getDocs(collection(db, 'lecturers'));
-        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        docs.sort((a, b) => {
-          const aPinned = !!a.pinnedRole;
-          const bPinned = !!b.pinnedRole;
-          if (aPinned && !bPinned) return -1;
-          if (!aPinned && bPinned) return 1;
-          return a.name.localeCompare(b.name);
-        });
-        setData(docs);
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { data, loading, error };
+  return useCachedQuery('lecturers', async () => {
+    const result = await fetchDocs(collection(db, 'lecturers'));
+    result.data.sort((a, b) => {
+      const aPinned = !!a.pinnedRole;
+      const bPinned = !!b.pinnedRole;
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    return result;
+  });
 }
 
 export function useMaterials(level, semester) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const q = query(
-          collection(db, 'learningMaterials'),
-          where('level', '==', level),
-          where('semester', '==', semester),
-          orderBy('courseCode', 'asc')
-        );
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, [level, semester]);
-  return { data, loading, error };
+  return useCachedQuery(`materials:${level}:${semester}`, () =>
+    fetchDocs(query(
+      collection(db, 'learningMaterials'),
+      where('level', '==', level),
+      where('semester', '==', semester),
+      orderBy('courseCode', 'asc')
+    )));
 }
 
 export function usePastQuestions(level, semester) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const q = query(
-          collection(db, 'pastQuestions'),
-          where('level', '==', level),
-          where('semester', '==', semester),
-          orderBy('courseCode', 'asc'),
-          orderBy('year', 'desc')
-        );
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, [level, semester]);
-  return { data, loading, error };
+  return useCachedQuery(`pastQuestions:${level}:${semester}`, () =>
+    fetchDocs(query(
+      collection(db, 'pastQuestions'),
+      where('level', '==', level),
+      where('semester', '==', semester),
+      orderBy('courseCode', 'asc'),
+      orderBy('year', 'desc')
+    )));
 }
 
 export function useAnnouncements() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { data, loading, error };
+  return useCachedQuery('announcements', () =>
+    fetchDocs(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'))));
+}
+
+// Class timetable for a level + semester.
+export function useTimetable(level, semester) {
+  return useCachedQuery(`timetable:${level}:${semester}`, () =>
+    fetchDocs(query(
+      collection(db, 'timetable'),
+      where('level', '==', level),
+      where('semester', '==', semester),
+    )));
 }
 
 // Exams timetable, scoped to a level (100/200/300/400). Grouped by date on
 // the screen side — if nothing's been uploaded for this level yet, `data`
 // just comes back empty and the screen shows a "check back later" state.
 export function useExamsTimetable(level) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const q = query(
-          collection(db, 'examsTimetable'),
-          where('level', '==', level),
-          orderBy('date', 'asc'),
-        );
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, [level]);
-  return { data, loading, error };
+  return useCachedQuery(`examsTimetable:${level}`, () =>
+    fetchDocs(query(
+      collection(db, 'examsTimetable'),
+      where('level', '==', level),
+      orderBy('date', 'asc'),
+    )));
+}
+
+// Exam periods used by the countdown.
+export function useExams() {
+  return useCachedQuery('exams', () =>
+    fetchDocs(query(collection(db, 'exams'), orderBy('startDate', 'asc'))));
 }
 
 // ─── WRITE / DELETE ───────────────────────────────────────────────────────────
@@ -282,38 +212,14 @@ export async function getAllExams() {
 }
 
 export function useSoftware() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const q = query(collection(db, 'software'), orderBy('createdAt', 'desc'));
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { data, loading, error };
+  return useCachedQuery('software', () =>
+    fetchDocs(query(collection(db, 'software'), orderBy('createdAt', 'desc'))));
 }
 
 // ─── TUTORIALS ────────────────────────────────────────────────────────────────
 export function useTutorials() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const q = query(collection(db, 'tutorials'), orderBy('createdAt', 'desc'));
-        const snap = await getDocs(q);
-        setData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-  return { data, loading, error };
+  return useCachedQuery('tutorials', () =>
+    fetchDocs(query(collection(db, 'tutorials'), orderBy('createdAt', 'desc'))));
 }
 
 export async function addTutorial(data) {

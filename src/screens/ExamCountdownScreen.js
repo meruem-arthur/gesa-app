@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getDocs, collection, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
-import { Loader, ErrorState, EmptyState, PillRow } from '../components/SharedComponents';
-import { useExamsTimetable } from '../hooks/useFirestore';
+import { Loader, ErrorState, EmptyState, PillRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
+import { useExamsTimetable, useExams } from '../hooks/useFirestore';
 
 const S = SPACING;
 
@@ -107,24 +105,22 @@ function Ticker({ examDate, now }) {
 }
 
 export default function ExamCountdownScreen() {
-  const [exams,   setExams]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
   const [quote]               = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   const [level, setLevel]     = useState(100);
   const now = useNow();
 
-  const { data: ttSlots, loading: ttLoading } = useExamsTimetable(level);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const snap = await getDocs(query(collection(db, 'exams'), orderBy('startDate', 'asc')));
-        setExams(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) { setError(e.message); }
-      finally { setLoading(false); }
-    })();
-  }, []);
+  // Both lists are cached, so the countdown and exams timetable open offline.
+  const examsQ = useExams();
+  const ttQ    = useExamsTimetable(level);
+  const exams    = examsQ.data;
+  const loading  = examsQ.loading;
+  const error    = examsQ.error;
+  const ttSlots  = ttQ.data;
+  const ttLoading = ttQ.loading;
+  const offline   = examsQ.offline || ttQ.offline;
+  const savedAt   = examsQ.savedAt || ttQ.savedAt;
+  const refreshing = examsQ.refreshing || ttQ.refreshing;
+  const refresh    = () => Promise.all([examsQ.refresh(), ttQ.refresh()]);
 
   // Find the next / active exam period
   const nextExam = exams.find(e => toDate(e.startDate) >= now)
@@ -151,7 +147,11 @@ export default function ExamCountdownScreen() {
   });
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.screen}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+    >
       {/* ── 1. Hero ── */}
       <View style={styles.hero}>
         <View style={styles.badge}>
@@ -161,6 +161,8 @@ export default function ExamCountdownScreen() {
         <Text style={styles.title}>Exam Countdown</Text>
         <Text style={styles.sub}>Stay ahead — know exactly how long you have</Text>
       </View>
+
+      <OfflineBanner visible={offline} savedAt={savedAt} />
 
       {loading && <Loader />}
       {error   && <ErrorState message={error} />}

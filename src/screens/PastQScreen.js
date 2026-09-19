@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { usePastQuestions } from '../hooks/useFirestore';
 import { useDownloads } from '../hooks/useDownloads';
-import { Loader, ErrorState, EmptyState, PillRow, TabRow } from '../components/SharedComponents';
+import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
 
 const LEVELS = [
   { label: 'Level 100', value: 100 },
@@ -22,7 +22,7 @@ export default function PastQScreen() {
   const [level, setLevel] = useState(100);
   const [sem, setSem] = useState(1);
   const [year, setYear] = useState(null);
-  const { data, loading, error } = usePastQuestions(level, sem);
+  const { data, loading, error, refreshing, refresh, offline, savedAt } = usePastQuestions(level, sem);
   const { downloaded, downloading, download, openItem } = useDownloads();
 
   // Derive unique years from data
@@ -35,7 +35,11 @@ export default function PastQScreen() {
   const filtered = year ? data.filter((d) => d.year === year) : data;
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.screen}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+    >
       <View style={styles.hero}>
         <View style={styles.heroBadgePurple}>
           <Ionicons name="document-outline" size={11} color={COLORS.p300} />
@@ -44,6 +48,8 @@ export default function PastQScreen() {
         <Text style={styles.heroTitle}>Past Questions</Text>
         <Text style={styles.heroSub}>Filter by level, semester & year</Text>
       </View>
+
+      <OfflineBanner visible={offline} savedAt={savedAt} />
 
       <PillRow options={LEVELS} selected={level} onSelect={(l) => { setLevel(l); setYear(null); }} />
       <TabRow tabs={SEMESTERS} selected={sem} onSelect={(s) => { setSem(s); setYear(null); }} />

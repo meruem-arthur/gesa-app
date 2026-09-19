@@ -5,7 +5,9 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
+  RefreshControl,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 
 // ── Loading spinner ──────────────────────────────────────────
@@ -40,6 +42,55 @@ export function EmptyState({ icon, message }) {
     </View>
   );
 }
+
+// ── Offline banner ───────────────────────────────────────────
+// Shown when the last network attempt failed and we're displaying the copy
+// saved on the phone. `savedAt` is a ms timestamp from useCachedQuery.
+export function OfflineBanner({ visible, savedAt }) {
+  if (!visible) return null;
+  const when = savedAt
+    ? new Date(savedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : null;
+  return (
+    <View style={ob.wrap}>
+      <Ionicons name="cloud-offline-outline" size={14} color={COLORS.gold3} />
+      <Text style={ob.text}>
+        Offline · showing your saved copy{when ? ` from ${when}` : ''}. Turn on data and pull down to refresh.
+      </Text>
+    </View>
+  );
+}
+
+// ── Pull-to-refresh control styled for the app ───────────────
+export function AppRefreshControl({ refreshing, onRefresh }) {
+  return (
+    <RefreshControl
+      refreshing={!!refreshing}
+      onRefresh={onRefresh}
+      tintColor={COLORS.gold2}
+      colors={[COLORS.gold2]}
+      progressBackgroundColor={COLORS.card}
+    />
+  );
+}
+
+const ob = StyleSheet.create({
+  wrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(212,160,23,0.11)',
+    borderWidth: 1,
+    borderColor: 'rgba(212,160,23,0.28)',
+    borderRadius: RADIUS.md,
+  },
+  text: { flex: 1, color: COLORS.gold3, fontSize: 11, lineHeight: 15 },
+});
 
 // ── Section label (uppercase muted) ─────────────────────────
 export function SectionLabel({ children }) {

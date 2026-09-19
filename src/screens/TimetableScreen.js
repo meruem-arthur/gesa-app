@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  collection, query, where, getDocs, orderBy,
-} from 'firebase/firestore';
-import { db } from '../../firebase';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
-import { Loader, ErrorState, EmptyState, PillRow, TabRow } from '../components/SharedComponents';
+import { useTimetable } from '../hooks/useFirestore';
+import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
 
 const S = SPACING;
 
@@ -111,32 +108,10 @@ function DaySection({ day, slots }) {
 export default function TimetableScreen() {
   const [level,    setLevel]    = useState(100);
   const [semester, setSemester] = useState(2);
-  const [slots,    setSlots]    = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState(null);
-
-  useEffect(() => {
-    fetchTimetable();
-  }, [level, semester]);
-
-  async function fetchTimetable() {
-    setLoading(true);
-    setError(null);
-    try {
-      const q = query(
-        collection(db, 'timetable'),
-        where('level',    '==', level),
-        where('semester', '==', semester),
-      );
-      const snap = await getDocs(q);
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setSlots(data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Cached: once a timetable has been loaded it stays viewable offline.
+  // It only changes when the phone is online and the user pulls down to refresh.
+  const { data: slots, loading, error, refreshing, refresh, offline, savedAt } =
+    useTimetable(level, semester);
 
   // Group by day in correct order
   const byDay = {};
@@ -162,7 +137,11 @@ export default function TimetableScreen() {
   const totalClasses = slots.length;
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.screen}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+    >
       {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.heroBadge}>
@@ -172,6 +151,8 @@ export default function TimetableScreen() {
         <Text style={styles.heroTitle}>Class Timetable</Text>
         <Text style={styles.heroSub}>Geomatic Engineering · UMaT</Text>
       </View>
+
+      <OfflineBanner visible={offline} savedAt={savedAt} />
 
       {/* Filters */}
       <PillRow options={LEVELS}   selected={level}    onSelect={setLevel}    />

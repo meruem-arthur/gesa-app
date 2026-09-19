@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { useMaterials } from '../hooks/useFirestore';
 import { useDownloads } from '../hooks/useDownloads';
-import { Loader, ErrorState, EmptyState, PillRow, TabRow } from '../components/SharedComponents';
+import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, AppRefreshControl } from '../components/SharedComponents';
 import { useState } from 'react';
 
 const LEVELS = [
@@ -22,7 +22,7 @@ const SEMESTERS = [
 export default function MaterialsScreen() {
   const [level, setLevel] = useState(100);
   const [sem, setSem] = useState(1);
-  const { data, loading, error } = useMaterials(level, sem);
+  const { data, loading, error, refreshing, refresh, offline, savedAt } = useMaterials(level, sem);
   const { downloaded, downloading, download, openItem } = useDownloads();
 
   // Materials from the current level/semester that are already saved locally —
@@ -30,7 +30,11 @@ export default function MaterialsScreen() {
   const downloadedInView = data.filter((course) => !!downloaded[course.fileUrl]);
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.screen}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+    >
       <View style={styles.hero}>
         <View style={styles.heroBadge}>
           <Ionicons name="book-outline" size={11} color={COLORS.gold3} />
@@ -39,6 +43,8 @@ export default function MaterialsScreen() {
         <Text style={styles.heroTitle}>Learning Materials</Text>
         <Text style={styles.heroSub}>Browse by level and semester</Text>
       </View>
+
+      <OfflineBanner visible={offline} savedAt={savedAt} />
 
       {downloadedInView.length > 0 && (
         <>
