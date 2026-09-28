@@ -146,7 +146,7 @@ export default function LeadersScreen() {
                 )}
               </View>
               {lec.pinnedRole === 'HOD'  ? <GoldBadge label="HOD" />
-                : lec.pinnedRole === 'Dean' ? <GoldBadge label="Dean" />
+                : (lec.pinnedRole === 'Principal' || lec.pinnedRole === 'Dean') ? <GoldBadge label="Principal" />
                 : <PurpleBadge label="Lec" />
               }
             </View>

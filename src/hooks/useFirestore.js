@@ -1,7 +1,7 @@
 import {
   collection, query, orderBy, where,
   getDocs, addDoc, updateDoc, deleteDoc,
-  doc, limit, Timestamp, setDoc,
+  doc, getDoc, limit, Timestamp, setDoc,
 } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useCachedQuery, fetchDocs } from './useCachedQuery';
@@ -44,6 +44,14 @@ export function useEvents() {
 export function useExecutives() {
   return useCachedQuery('executives', () =>
     fetchDocs(query(collection(db, 'executives'), orderBy('order', 'asc'))));
+}
+
+// siteContent/home — text managed in the admin dashboard (clinic phone, etc.)
+export function useSiteContent() {
+  return useCachedQuery('siteContent:home', async () => {
+    const snap = await getDoc(doc(db, 'siteContent', 'home'));
+    return { data: snap.exists() ? snap.data() : null, fromCache: snap.metadata.fromCache };
+  }, null);
 }
 
 export function useLecturers() {

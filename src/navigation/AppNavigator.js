@@ -25,6 +25,7 @@ import ReportScreen          from '../screens/ReportScreen';
 import SoftwareScreen        from '../screens/SoftwareScreen';
 import TutorialsScreen       from '../screens/TutorialsScreen';
 import AdminScreen           from '../screens/AdminScreen';
+import TalkToSomeoneScreen   from '../screens/TalkToSomeoneScreen';
 
 const Stack  = createStackNavigator();
 const S      = SPACING;
@@ -52,6 +53,7 @@ const SIDEBAR_ITEMS = [
   { name: 'Planner',  label: 'Planner',  icon: 'trending-up-outline',   iconOn: 'trending-up',   component: SemesterPlannerScreen },
   { name: 'Software', label: 'Software', icon: 'desktop-outline',       iconOn: 'desktop',       component: SoftwareScreen        },
   { name: 'Tutorials',label: 'Tutorials',icon: 'play-circle-outline',   iconOn: 'play-circle',   component: TutorialsScreen       },
+  { name: 'Welfare',  label: 'Talk to Someone', icon: 'heart-outline',     iconOn: 'heart',         component: TalkToSomeoneScreen   },
   { name: 'Report',   label: 'Report',   icon: 'flag-outline',          iconOn: 'flag',          component: ReportScreen          },
 ];
 

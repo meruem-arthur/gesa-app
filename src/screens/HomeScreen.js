@@ -200,6 +200,7 @@ export default function HomeScreen({ navigation }) {
             { label: 'Past Questions',sub: 'All years',        icon: 'document-text-outline',  to: 'PastQ',     color: '#7c3aed' },
             { label: 'Exam Countdown',sub: 'Live timer',       icon: 'alarm-outline',           to: 'Exams',     color: '#d97706' },
             { label: 'Forum',         sub: 'Q&A · Anonymous',  icon: 'chatbubbles-outline',     to: 'Forum',     color: '#c2410c' },
+            { label: 'Talk to Someone',sub: 'Welfare support', icon: 'heart-outline',           to: 'Welfare',   color: '#be185d' },
           ].map(item => (
             <TouchableOpacity
               key={item.label}

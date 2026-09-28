@@ -234,7 +234,7 @@ function LecturersSection() {
           <Field label="Phone" value={form.phone} onChangeText={v => setForm(f => ({ ...f, phone: v }))} keyboardType="phone-pad" />
           <Field label="Email" value={form.email} onChangeText={v => setForm(f => ({ ...f, email: v }))} keyboardType="email-address" />
           <View style={sec.switchRow}>
-            <Text style={fi.label}>Pin as HOD / Dean?</Text>
+            <Text style={fi.label}>Pin as HOD / Principal?</Text>
             <Switch value={form.isPinned} onValueChange={v => setForm(f => ({ ...f, isPinned: v }))} trackColor={{ true: COLORS.gold2 }} />
           </View>
           <PhotoPicker uri={photoUri} onPick={pickPhoto} />
