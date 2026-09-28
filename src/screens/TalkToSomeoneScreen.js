@@ -126,7 +126,7 @@ export default function TalkToSomeoneScreen() {
         </Text>
         <Text style={styles.p}>
           You don't have to. GESA has a Welfare Committee, and its chairman is a fellow student who will
-          listen, take you seriously, and help work out what support is possible, including help with dues.
+          listen, take you seriously, and help work out what support is possible.
         </Text>
         <Text style={styles.p}>
           Call or send a WhatsApp message, whichever feels easier. Nothing you say goes through this app or is
