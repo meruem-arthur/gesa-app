@@ -19,6 +19,16 @@ const SEMESTERS = [
   { label: 'Semester 2', value: 2 },
 ];
 
+// "PDF" / "PPT" / "DOC" tag from the file's extension, so a course that has both a
+// PDF and a slide deck shows two clearly different rows.
+function fileTag(course) {
+  const ext = String(course.fileName || course.fileUrl || '').split('?')[0].split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'PDF';
+  if (ext === 'ppt' || ext === 'pptx') return 'PPT';
+  if (ext === 'doc' || ext === 'docx') return 'DOC';
+  return '';
+}
+
 export default function MaterialsScreen() {
   const [level, setLevel] = useState(100);
   const [sem, setSem] = useState(1);
@@ -64,7 +74,10 @@ export default function MaterialsScreen() {
                   <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.ccode}>{course.courseCode}</Text>
+                  <View style={styles.codeRow}>
+                    <Text style={styles.ccode}>{course.courseCode}</Text>
+                    {!!fileTag(course) && <Text style={styles.ftag}>{fileTag(course)}</Text>}
+                  </View>
                   <Text style={styles.cname}>{course.courseName}</Text>
                 </View>
               </View>
@@ -100,7 +113,10 @@ export default function MaterialsScreen() {
                 <Ionicons name="document-text-outline" size={16} color={COLORS.gold2} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.ccode}>{course.courseCode}</Text>
+                <View style={styles.codeRow}>
+                    <Text style={styles.ccode}>{course.courseCode}</Text>
+                    {!!fileTag(course) && <Text style={styles.ftag}>{fileTag(course)}</Text>}
+                  </View>
                 <Text style={styles.cname}>{course.courseName}</Text>
               </View>
             </TouchableOpacity>
@@ -146,6 +162,8 @@ const styles = StyleSheet.create({
   crowLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: S.md },
   cico: { width: 31, height: 31, borderRadius: S.sm, backgroundColor: 'rgba(212,160,23,0.11)', alignItems: 'center', justifyContent: 'center' },
   ccode: { color: COLORS.gold3, fontSize: 11, fontWeight: '600' },
+  codeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ftag: { color: COLORS.muted, fontSize: 9, fontWeight: '700', letterSpacing: 0.6, borderWidth: 1, borderColor: COLORS.border2, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
   cname: { color: COLORS.text, fontSize: 12, marginTop: 2 },
   downloadBtn: { width: 52, height: 36, alignItems: 'center', justifyContent: 'center' },
   downloadBtnOpen: { flexDirection: 'row', gap: 3, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: RADIUS.pill, paddingHorizontal: 6 },
