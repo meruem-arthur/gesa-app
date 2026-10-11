@@ -21,6 +21,15 @@ function toWhatsAppNumber(raw) {
 }
 const toTel = (raw) => `tel:${String(raw || '').replace(/[^\d+]/g, '')}`;
 
+// "amaskitchen.com" or "https://…" → a safe https link; other schemes are rejected.
+function toWebHref(raw) {
+  const v = String(raw || '').trim();
+  if (!v) return '';
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^[a-z][a-z0-9+.-]*:(?!\d)/i.test(v)) return '';
+  return `https://${v}`;
+}
+
 // Logo, or the business's first letter when there is none.
 function Logo({ business, size }) {
   const letter = (business.name || '?').trim().slice(0, 1).toUpperCase();
@@ -74,6 +83,7 @@ function BusinessCard({ business, onPress }) {
 
 function BusinessDetail({ business, onBack }) {
   const wa = toWhatsAppNumber(business.whatsapp || business.phone);
+  const webHref = toWebHref(business.website);
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <TouchableOpacity style={styles.backRow} onPress={onBack} activeOpacity={0.7}>
@@ -102,6 +112,7 @@ function BusinessDetail({ business, onBack }) {
           <Text style={styles.sectionLabel}>GET IN TOUCH</Text>
           {!!business.phone && <Text style={styles.contactLine}>{business.phone}</Text>}
           {!!business.email && <Text style={styles.contactLine}>{business.email}</Text>}
+          {!!webHref && <Text style={styles.contactLine}>{business.website}</Text>}
           <View style={styles.btnRow}>
             {!!business.phone && (
               <TouchableOpacity style={[styles.btn, styles.btnGold]} activeOpacity={0.85}
@@ -122,6 +133,13 @@ function BusinessDetail({ business, onBack }) {
                 onPress={() => Linking.openURL(`mailto:${business.email}`)}>
                 <Ionicons name="mail-outline" size={16} color={COLORS.gold2} />
                 <Text style={styles.btnOutlineTx}>Email</Text>
+              </TouchableOpacity>
+            )}
+            {!!webHref && (
+              <TouchableOpacity style={[styles.btn, styles.btnOutline]} activeOpacity={0.85}
+                onPress={() => Linking.openURL(webHref)}>
+                <Ionicons name="globe-outline" size={16} color={COLORS.gold2} />
+                <Text style={styles.btnOutlineTx}>Website</Text>
               </TouchableOpacity>
             )}
           </View>
