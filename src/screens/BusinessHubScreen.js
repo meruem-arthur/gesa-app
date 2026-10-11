@@ -4,6 +4,7 @@ import {
   ImageBackground, BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { useBusinesses, useSiteContent } from '../hooks/useFirestore';
 import { Loader, ErrorState, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
@@ -81,11 +82,32 @@ function BusinessCard({ business, onPress }) {
   );
 }
 
+// Soft glow behind the detail page: the logo, enlarged and blurred, fading into the background.
+function Glow({ uri }) {
+  return (
+    <View pointerEvents="none" style={styles.glow}>
+      <Image source={{ uri }} style={styles.glowImg} resizeMode="cover" blurRadius={30} />
+      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+        <Defs>
+          <LinearGradient id="glowFade" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={COLORS.bg} stopOpacity="0.5" />
+            <Stop offset="0.6" stopColor={COLORS.bg} stopOpacity="0.8" />
+            <Stop offset="1" stopColor={COLORS.bg} stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#glowFade)" />
+      </Svg>
+    </View>
+  );
+}
+
 function BusinessDetail({ business, onBack }) {
   const wa = toWhatsAppNumber(business.whatsapp || business.phone);
   const webHref = toWebHref(business.website);
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+      <View>
+      {!!business.logoUrl && <Glow uri={business.logoUrl} />}
       <TouchableOpacity style={styles.backRow} onPress={onBack} activeOpacity={0.7}>
         <Ionicons name="arrow-back" size={18} color={COLORS.gold2} />
         <Text style={styles.backTx}>All businesses</Text>
@@ -157,6 +179,7 @@ function BusinessDetail({ business, onBack }) {
         )}
       </View>
       <View style={{ height: 40 }} />
+      </View>
     </ScrollView>
   );
 }
@@ -238,6 +261,8 @@ const styles = StyleSheet.create({
   pending:      { borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.border2, borderRadius: RADIUS.md, padding: S.lg },
   pendingTx:    { color: COLORS.muted, fontSize: 13, lineHeight: 20, textAlign: 'center' },
 
+  glow:         { position: 'absolute', top: 0, left: 0, right: 0, height: 380, overflow: 'hidden' },
+  glowImg:      { width: '100%', height: '100%', opacity: 0.45, transform: [{ scale: 1.5 }] },
   backRow:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: S.lg, paddingTop: S.lg, paddingBottom: S.md },
   backTx:       { color: COLORS.gold2, fontSize: 13, fontWeight: '600' },
   detailHead:   { flexDirection: 'row', gap: S.lg, alignItems: 'center', paddingHorizontal: S.lg, paddingBottom: S.lg },
