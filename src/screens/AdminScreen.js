@@ -402,10 +402,23 @@ function WordOfDaySection() {
   const refresh = async () => { setLoading(true); try { setList(await getAllWordsOfDay()); } finally { setLoading(false); } };
   useEffect(() => { refresh(); }, []);
 
+  // First day with no word after everything already scheduled (or today if the queue ran out).
+  const today = new Date().toISOString().split('T')[0];
+  const latest = list.reduce((m, w) => (w.date > m ? w.date : m), '');
+  let nextFree = today;
+  if (latest && latest >= today) {
+    const d = new Date(latest + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + 1);
+    nextFree = d.toISOString().split('T')[0];
+  }
+
   async function handleSave() {
-    if (!form.word || !form.definition || !form.date) { Alert.alert('Fill word, definition and date'); return; }
+    if (!form.word || !form.definition) { Alert.alert('Fill the word and the definition'); return; }
+    const date = form.date || nextFree;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { Alert.alert('Date must look like 2026-11-14'); return; }
+    if (list.some(w => w.date === date)) { Alert.alert('Date taken', `${date} already has a word. Pick another date.`); return; }
     setSaving(true);
-    try { await addWordOfDay(form); await refresh(); setForm({ word: '', type: '', definition: '', example: '', date: '' }); setShowForm(false); Alert.alert('✅ Word added!'); }
+    try { await addWordOfDay({ ...form, date }); await refresh(); setForm({ word: '', type: '', definition: '', example: '', date: '' }); setShowForm(false); Alert.alert('✅ Word added!'); }
     catch (e) { Alert.alert('Error', e.message); }
     finally { setSaving(false); }
   }
@@ -426,7 +439,7 @@ function WordOfDaySection() {
           <Field label="Type (e.g. noun · Geomatics)" value={form.type} onChangeText={v => setForm(f => ({ ...f, type: v }))} />
           <Field label="Definition" value={form.definition} onChangeText={v => setForm(f => ({ ...f, definition: v }))} multiline />
           <Field label="Example sentence" value={form.example} onChangeText={v => setForm(f => ({ ...f, example: v }))} multiline />
-          <Field label="Date (YYYY-MM-DD)" value={form.date} onChangeText={v => setForm(f => ({ ...f, date: v }))} placeholder="e.g. 2025-06-01" />
+          <Field label="Date (YYYY-MM-DD) — leave empty for the next free day" value={form.date} onChangeText={v => setForm(f => ({ ...f, date: v }))} placeholder={nextFree} />
           <FormBtns onCancel={() => setShowForm(false)} onSave={handleSave} saving={saving} />
         </View>
       )}
