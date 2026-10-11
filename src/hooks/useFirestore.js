@@ -54,6 +54,16 @@ export function useSiteContent() {
   }, null);
 }
 
+// businesses — Business Hub entries managed in the admin dashboard.
+// Hidden ones (visible === false) are filtered out here.
+export function useBusinesses() {
+  return useCachedQuery('businesses', async () => {
+    const result = await fetchDocs(query(collection(db, 'businesses'), orderBy('order', 'asc')));
+    result.data = result.data.filter(b => b.visible !== false);
+    return result;
+  });
+}
+
 export function useLecturers() {
   return useCachedQuery('lecturers', async () => {
     const result = await fetchDocs(collection(db, 'lecturers'));

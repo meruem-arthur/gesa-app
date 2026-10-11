@@ -201,6 +201,7 @@ export default function HomeScreen({ navigation }) {
             { label: 'Exam Countdown',sub: 'Live timer',       icon: 'alarm-outline',           to: 'Exams',     color: '#d97706' },
             { label: 'Forum',         sub: 'Q&A · Anonymous',  icon: 'chatbubbles-outline',     to: 'Forum',     color: '#c2410c' },
             { label: 'Talk to Someone',sub: 'Welfare support', icon: 'heart-outline',           to: 'Welfare',   color: '#be185d' },
+            { label: 'Business Hub',  sub: 'Student businesses', icon: 'storefront-outline',   to: 'Business',  color: '#0f766e' },
           ].map(item => (
             <TouchableOpacity
               key={item.label}
