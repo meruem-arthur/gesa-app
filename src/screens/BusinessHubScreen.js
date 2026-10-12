@@ -104,6 +104,8 @@ function Glow({ uri }) {
 function BusinessDetail({ business, onBack }) {
   const wa = toWhatsAppNumber(business.whatsapp || business.phone);
   const webHref = toWebHref(business.website);
+  // Products are optional: shown when they have a photo or a name; price is optional too.
+  const products = (business.products || []).filter(p => p && (p.name || p.imageUrl));
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <View>
@@ -127,6 +129,31 @@ function BusinessDetail({ business, onBack }) {
           <>
             <Text style={styles.sectionLabel}>ABOUT THE BUSINESS</Text>
             <Text style={styles.p}>{business.description}</Text>
+          </>
+        )}
+
+        {products.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>PRODUCTS</Text>
+            <View style={styles.productGrid}>
+              {products.map((p, i) => {
+                const text = p.name
+                  ? `Hi, I saw ${p.name} on the GESA Business Hub. Is it available?`
+                  : 'Hi, I saw your products on the GESA Business Hub.';
+                return (
+                  <View key={i} style={styles.productCard}>
+                    {!!p.imageUrl && <Image source={{ uri: p.imageUrl }} style={styles.productImg} resizeMode="cover" />}
+                    {!!p.name && <Text style={styles.productName} numberOfLines={2}>{p.name}</Text>}
+                    {!!p.price && <Text style={styles.productPrice}>{p.price}</Text>}
+                    {!!wa && (
+                      <TouchableOpacity activeOpacity={0.7} onPress={() => Linking.openURL(`https://wa.me/${wa}?text=${encodeURIComponent(text)}`)}>
+                        <Text style={styles.productAsk}>Ask about this →</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
           </>
         )}
 
@@ -273,6 +300,12 @@ const styles = StyleSheet.create({
   sectionLabel: { color: COLORS.dim, fontSize: 9, fontWeight: '700', letterSpacing: 1.2, marginBottom: S.sm },
   p:            { color: COLORS.muted, fontSize: 13.5, lineHeight: 21, marginBottom: S.lg },
 
+  productGrid:  { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: S.md, marginBottom: S.lg },
+  productCard:  { width: '48%', backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.sm },
+  productImg:   { width: '100%', aspectRatio: 1, borderRadius: RADIUS.sm, backgroundColor: COLORS.card2, marginBottom: S.sm },
+  productName:  { color: COLORS.text, fontSize: 13, fontWeight: '700', lineHeight: 18 },
+  productPrice: { color: COLORS.gold2, fontSize: 12.5, fontWeight: '600', marginTop: 2 },
+  productAsk:   { color: COLORS.gold2, fontSize: 11, fontWeight: '600', marginTop: 8 },
   contactCard:  { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, marginBottom: S.md },
   contactLine:  { color: COLORS.muted, fontSize: 13, marginBottom: 3 },
   btnRow:       { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm, marginTop: S.md },
