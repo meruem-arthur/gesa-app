@@ -4,6 +4,7 @@ import {
   Image, Modal, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { useEvents } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState, SectionLabel } from '../components/SharedComponents';
@@ -34,6 +35,7 @@ const TAG_STYLES = {
 
 // ─── Event detail modal ───────────────────────────────────────────────────────
 function EventDetailModal({ event, onClose }) {
+  const insets = useSafeAreaInsets();
   if (!event) return null;
   const tagStyle = TAG_STYLES[event.tag] || TAG_STYLES.default;
 
@@ -56,7 +58,7 @@ function EventDetailModal({ event, onClose }) {
               />
             )}
 
-            <View style={md.body}>
+            <View style={[md.body, { paddingBottom: 40 + insets.bottom }]}>
               {/* Tag */}
               <View style={[md.tag, { backgroundColor: tagStyle.bg }]}>
                 <Text style={[md.tagTx, { color: tagStyle.color }]}>{event.tag || 'Event'}</Text>

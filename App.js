@@ -68,7 +68,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor="#07050f" />
+      <StatusBar style="light" />
       <AppNavigator />
     </SafeAreaProvider>
   )

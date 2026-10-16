@@ -262,6 +262,12 @@ function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress, onHomeTap }) {
 
 // ─── Main app layout ──────────────────────────────────────────────────────────
 function AppLayout({ adminUnlocked, onAdminTap }) {
+  // Android draws edge-to-edge (Expo SDK 54), so the system bars overlap our content.
+  // The top inset is applied ONCE here, for every screen. Screens must not add their own.
+  // The bottom inset is handled by BottomTabBar (it is the bottom-most element).
+  // insets.top is measured from the real window, so it is 0 where the OS already
+  // keeps content below the status bar, and the inset is never counted twice.
+  const insets = useSafeAreaInsets();
   const [activeTab,    setActiveTab]    = useState('Home');
   const [sidebarOpen,  setSidebarOpen]  = useState(false);
 
@@ -282,7 +288,7 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.bg, paddingTop: insets.top }}>
       <View style={{ flex: 1 }}>
         <CurrentScreen navigation={fakeNavigation} />
       </View>
