@@ -5,9 +5,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
 import { useBusinesses, useSiteContent } from '../hooks/useFirestore';
 import { Loader, ErrorState, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
+import { GlassCard, GlassButton } from '../components/Glass';
 
 const S = SPACING;
 const DEFAULT_TITLE = 'Get in touch with student business entrepreneurs in GESA';
@@ -69,15 +70,17 @@ function Hero({ site }) {
 
 function BusinessCard({ business, onPress }) {
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onPress}>
-      <Logo business={business} size={64} />
-      <View style={{ flex: 1 }}>
-        <Text style={styles.name} numberOfLines={2}>{business.name}</Text>
-        {!!business.shortDescription && (
-          <Text style={styles.desc} numberOfLines={3}>{business.shortDescription}</Text>
-        )}
-        <Text style={styles.more}>View details →</Text>
-      </View>
+    <TouchableOpacity style={styles.cardWrap} activeOpacity={0.85} onPress={onPress}>
+      <GlassCard blur={false} tint="#a855f7" radius={RADIUS.md} edge={0.3} style={styles.card}>
+        <Logo business={business} size={64} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.name} numberOfLines={2}>{business.name}</Text>
+          {!!business.shortDescription && (
+            <Text style={styles.desc} numberOfLines={3}>{business.shortDescription}</Text>
+          )}
+          <Text style={styles.more}>View details →</Text>
+        </View>
+      </GlassCard>
     </TouchableOpacity>
   );
 }
@@ -110,7 +113,7 @@ function BusinessDetail({ business, onBack }) {
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <View>
       {!!business.logoUrl && <Glow uri={business.logoUrl} />}
-      <TouchableOpacity style={styles.backRow} onPress={onBack} activeOpacity={0.7}>
+      <TouchableOpacity style={styles.backRow} onPress={onBack} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
         <Ionicons name="arrow-back" size={18} color={COLORS.gold2} />
         <Text style={styles.backTx}>All businesses</Text>
       </TouchableOpacity>
@@ -157,42 +160,30 @@ function BusinessDetail({ business, onBack }) {
           </>
         )}
 
-        <View style={styles.contactCard}>
+        <GlassCard blur={false} tint="#e8b82a" radius={RADIUS.md} edge={0.28} style={styles.contactCard}>
           <Text style={styles.sectionLabel}>GET IN TOUCH</Text>
           {!!business.phone && <Text style={styles.contactLine}>{business.phone}</Text>}
           {!!business.email && <Text style={styles.contactLine}>{business.email}</Text>}
           {!!webHref && <Text style={styles.contactLine}>{business.website}</Text>}
           <View style={styles.btnRow}>
             {!!business.phone && (
-              <TouchableOpacity style={[styles.btn, styles.btnGold]} activeOpacity={0.85}
-                onPress={() => Linking.openURL(toTel(business.phone))}>
-                <Ionicons name="call" size={16} color="#1a1200" />
-                <Text style={styles.btnGoldTx}>Call</Text>
-              </TouchableOpacity>
+              <GlassButton variant="primary" icon="call" label="Call"
+                onPress={() => Linking.openURL(toTel(business.phone))} />
             )}
             {!!wa && (
-              <TouchableOpacity style={[styles.btn, styles.btnOutline]} activeOpacity={0.85}
-                onPress={() => Linking.openURL(`https://wa.me/${wa}`)}>
-                <Ionicons name="logo-whatsapp" size={16} color={COLORS.green} />
-                <Text style={styles.btnOutlineTx}>WhatsApp</Text>
-              </TouchableOpacity>
+              <GlassButton icon="logo-whatsapp" iconColor={COLORS.green} tint="#4ade80" label="WhatsApp"
+                onPress={() => Linking.openURL(`https://wa.me/${wa}`)} />
             )}
             {!!business.email && (
-              <TouchableOpacity style={[styles.btn, styles.btnOutline]} activeOpacity={0.85}
-                onPress={() => Linking.openURL(`mailto:${business.email}`)}>
-                <Ionicons name="mail-outline" size={16} color={COLORS.gold2} />
-                <Text style={styles.btnOutlineTx}>Email</Text>
-              </TouchableOpacity>
+              <GlassButton icon="mail-outline" label="Email"
+                onPress={() => Linking.openURL(`mailto:${business.email}`)} />
             )}
             {!!webHref && (
-              <TouchableOpacity style={[styles.btn, styles.btnOutline]} activeOpacity={0.85}
-                onPress={() => Linking.openURL(webHref)}>
-                <Ionicons name="globe-outline" size={16} color={COLORS.gold2} />
-                <Text style={styles.btnOutlineTx}>Website</Text>
-              </TouchableOpacity>
+              <GlassButton icon="globe-outline" label="Website"
+                onPress={() => Linking.openURL(webHref)} />
             )}
           </View>
-        </View>
+        </GlassCard>
 
         {!!business.ownerPhotoUrl && (
           <View style={styles.ownerCard}>
@@ -271,27 +262,28 @@ const styles = StyleSheet.create({
   hero:         { width: '100%' },
   heroScrim:    { backgroundColor: 'rgba(28,16,72,0.82)' },
   heroInner:    { paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
-  heroBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
-  heroBadgeTx:  { color: COLORS.gold3, fontSize: 10 },
+  heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
+  heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:    { color: COLORS.text, fontSize: 20, fontWeight: '700', lineHeight: 27 },
   heroSub:      { color: COLORS.muted, fontSize: 13, marginTop: 8, lineHeight: 20 },
   body:         { paddingHorizontal: S.lg, paddingTop: S.lg },
 
-  card:         { flexDirection: 'row', gap: S.md, alignItems: 'center', backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, marginBottom: S.md },
+  cardWrap:     { marginBottom: S.md },
+  card:         { flexDirection: 'row', gap: S.md, alignItems: 'center', padding: S.md },
   logo:         { borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.card2 },
   logoFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#5b21b6' },
   logoLetter:   { color: '#fff', fontWeight: '700' },
   name:         { color: COLORS.text, fontSize: 15, fontWeight: '700' },
   desc:         { color: COLORS.muted, fontSize: 12.5, lineHeight: 18, marginTop: 3 },
-  more:         { color: COLORS.gold2, fontSize: 11, fontWeight: '600', marginTop: 8 },
+  more:         { color: COLORS.gold2, fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginTop: 8 },
 
   pending:      { borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.border2, borderRadius: RADIUS.md, padding: S.lg },
   pendingTx:    { color: COLORS.muted, fontSize: 13, lineHeight: 20, textAlign: 'center' },
 
   glow:         { position: 'absolute', top: 0, left: 0, right: 0, height: 380, overflow: 'hidden' },
   glowImg:      { width: '100%', height: '100%', opacity: 0.45, transform: [{ scale: 1.5 }] },
-  backRow:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: S.lg, paddingTop: S.lg, paddingBottom: S.md },
-  backTx:       { color: COLORS.gold2, fontSize: 13, fontWeight: '600' },
+  backRow:      { ...GLASS.chip, marginHorizontal: S.lg, marginTop: S.lg, marginBottom: S.md, paddingVertical: 8, paddingHorizontal: 14 },
+  backTx:       { ...GLASS.chipText, fontSize: 11 },
   detailHead:   { flexDirection: 'row', gap: S.lg, alignItems: 'center', paddingHorizontal: S.lg, paddingBottom: S.lg },
   detailEyebrow:{ color: COLORS.dim, fontSize: 9, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4 },
   detailName:   { color: COLORS.text, fontSize: 21, fontWeight: '800', lineHeight: 27 },
@@ -306,14 +298,9 @@ const styles = StyleSheet.create({
   productName:  { color: COLORS.text, fontSize: 13, fontWeight: '700', lineHeight: 18 },
   productPrice: { color: COLORS.gold2, fontSize: 12.5, fontWeight: '600', marginTop: 2 },
   productAsk:   { color: COLORS.gold2, fontSize: 11, fontWeight: '600', marginTop: 8 },
-  contactCard:  { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, marginBottom: S.md },
+  contactCard:  { padding: S.md, marginBottom: S.md },
   contactLine:  { color: COLORS.muted, fontSize: 13, marginBottom: 3 },
   btnRow:       { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm, marginTop: S.md },
-  btn:          { flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: S.lg, paddingVertical: 11, borderRadius: RADIUS.sm },
-  btnGold:      { backgroundColor: COLORS.gold2 },
-  btnGoldTx:    { color: '#1a1200', fontWeight: '700', fontSize: 13 },
-  btnOutline:   { borderWidth: 1, borderColor: COLORS.border2 },
-  btnOutlineTx: { color: COLORS.text, fontWeight: '600', fontSize: 13 },
 
   ownerCard:    { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, marginBottom: S.md },
   ownerPhoto:   { width: '100%', aspectRatio: 4 / 5, borderRadius: RADIUS.sm, backgroundColor: COLORS.card2 },

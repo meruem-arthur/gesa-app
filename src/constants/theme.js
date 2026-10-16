@@ -53,3 +53,22 @@ export const SPACING = {
   xl: 22,
   xxl: 32,
 };
+
+// Frosted "HUD" label used for hero badges and tags. Spread into a StyleSheet entry:
+//   heroBadge: { ...GLASS.chip, marginBottom: SPACING.sm }
+export const GLASS = {
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(245,204,92,0.42)', borderTopColor: 'rgba(255,255,255,0.38)',
+    borderRadius: RADIUS.pill, paddingHorizontal: SPACING.md, paddingVertical: 5,
+  },
+  chipText: { color: COLORS.gold3, fontSize: 9.5, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
+  chipPurple: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(192,132,252,0.5)', borderTopColor: 'rgba(255,255,255,0.38)',
+    borderRadius: RADIUS.pill, paddingHorizontal: SPACING.md, paddingVertical: 5,
+  },
+  chipPurpleText: { color: COLORS.p200, fontSize: 9.5, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
+};

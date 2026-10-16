@@ -7,7 +7,8 @@ import {
 import Svg, { Path, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { GlassCard, PulseDot, rgba } from '../components/Glass';
 import { useWordOfDay, useEvents } from '../hooks/useFirestore';
 import { Loader, SectionLabel } from '../components/SharedComponents';
 
@@ -173,13 +174,16 @@ export default function HomeScreen({ navigation }) {
         {/* Word of the day */}
         <View style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
           {wLoad ? <Loader /> : word ? (
-            <View style={styles.wotd}>
-              <Text style={styles.wotdLbl}>✦  WORD OF THE DAY</Text>
+            <GlassCard style={styles.wotd} realBlur corners intensity={40} strength={1.3}>
+              <View style={styles.wotdChip}>
+                <PulseDot color={COLORS.gold2} />
+                <Text style={styles.wotdLbl}>Word of the day</Text>
+              </View>
               <Text style={styles.wotdWord}>{word.word}</Text>
               <Text style={styles.wotdType}>{word.type || 'noun · Geomatics'}</Text>
               <Text style={styles.wotdDef}>{word.definition}</Text>
               {!!word.example && <Text style={styles.wotdEx}>{word.example}</Text>}
-            </View>
+            </GlassCard>
           ) : null}
         </View>
 
@@ -205,13 +209,18 @@ export default function HomeScreen({ navigation }) {
           ].map(item => (
             <TouchableOpacity
               key={item.label}
-              style={[styles.qcard, { backgroundColor: item.color }]}
+              style={styles.qwrap}
               onPress={() => navigation.navigate(item.to)}
               activeOpacity={0.85}
             >
-              <Ionicons name={item.icon} size={28} color="#fff" />
-              <Text style={styles.qtitle}>{item.label}</Text>
-              <Text style={styles.qsub}>{item.sub}</Text>
+              <GlassCard tint={item.color} strength={2.4} edge={0.55} radius={16} intensity={22} style={styles.qcard}>
+                <View style={[styles.qicon, { backgroundColor: rgba(item.color, 0.35), borderColor: rgba(item.color, 0.9) }]}>
+                  <Ionicons name={item.icon} size={24} color="#fff" />
+                </View>
+                <Text style={styles.qtitle}>{item.label}</Text>
+                <Text style={styles.qsub}>{item.sub}</Text>
+                <Ionicons name="arrow-forward" size={15} color="rgba(255,255,255,0.7)" style={styles.qarrow} />
+              </GlassCard>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -225,10 +234,11 @@ export default function HomeScreen({ navigation }) {
               return (
                 <TouchableOpacity
                   key={ev.id}
-                  style={styles.evRow}
+                  style={styles.evWrap}
                   onPress={() => navigation.navigate('Events')}
                   activeOpacity={0.75}
                 >
+                  <GlassCard tint="#a855f7" radius={RADIUS.md} intensity={18} edge={0.25} style={styles.evRow}>
                   <View style={styles.evDate}>
                     <Text style={styles.evDay}>{d.getDate()}</Text>
                     <Text style={styles.evMon}>{d.toLocaleString('en', { month: 'short' }).toUpperCase()}</Text>
@@ -240,6 +250,7 @@ export default function HomeScreen({ navigation }) {
                   {isComingSoon(ev.date) && (
                     <View style={styles.soonTag}><Text style={styles.soonTx}>Soon</Text></View>
                   )}
+                  </GlassCard>
                 </TouchableOpacity>
               );
             })
@@ -262,37 +273,36 @@ const styles = StyleSheet.create({
   screen:       { flex: 1, backgroundColor: 'transparent' },
   hero:         { paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   logo:         { width: 84, height: 84, borderRadius: 42, marginBottom: S.md, borderWidth: 2, borderColor: 'rgba(212,160,23,0.5)', backgroundColor: '#fff' },
-  heroBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.15)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.35)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
-  heroBadgeTx:  { color: COLORS.gold3, fontSize: 10 },
+  heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
+  heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:    { color: '#fff', fontSize: 20, fontWeight: '800', lineHeight: 27, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
   heroSub:      { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 5 },
 
-  wotd:         { backgroundColor: 'rgba(30,21,69,0.85)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.25)', borderRadius: RADIUS.xl, padding: S.lg },
-  wotdLbl:      { color: COLORS.gold3, fontSize: 9, letterSpacing: 2, marginBottom: S.sm },
-  wotdWord:     { color: COLORS.text, fontSize: 22, fontWeight: '700' },
+  wotd:         { padding: S.lg },
+  wotdChip:     { ...GLASS.chip, marginBottom: S.md },
+  wotdLbl:      { ...GLASS.chipText },
+  wotdWord:     { color: COLORS.text, fontSize: 24, fontWeight: '800', letterSpacing: 0.4, textShadowColor: 'rgba(232,184,42,0.55)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
   wotdType:     { color: COLORS.gold2, fontSize: 11, fontStyle: 'italic', marginTop: 2 },
-  wotdDef:      { color: COLORS.muted, fontSize: 13, lineHeight: 20, marginTop: S.sm },
-  wotdEx:       { color: COLORS.dim, fontSize: 12, fontStyle: 'italic', marginTop: S.sm, paddingLeft: S.sm, borderLeftWidth: 2, borderLeftColor: 'rgba(212,160,23,0.28)', lineHeight: 18 },
+  wotdDef:      { color: '#c9bfe6', fontSize: 13, lineHeight: 20, marginTop: S.sm },
+  wotdEx:       { color: COLORS.muted, fontSize: 12, fontStyle: 'italic', marginTop: S.sm, paddingLeft: S.sm, borderLeftWidth: 2, borderLeftColor: 'rgba(212,160,23,0.28)', lineHeight: 18 },
 
   qrow:         { paddingLeft: S.lg, paddingRight: S.xl, gap: 12 },
-  qcard:        {
-    width: 160, height: 180, borderRadius: 16, padding: S.lg,
-    justifyContent: 'flex-start',
-    // Lifted / elevated shadow effect
-    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 10,
-    elevation: 6,
-  },
-  qtitle:       { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: S.md },
+  qwrap:        { width: 160, height: 180 },
+  qcard:        { flex: 1, padding: S.lg, justifyContent: 'flex-start' },
+  qicon:        { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  qarrow:       { position: 'absolute', right: S.lg, bottom: S.lg },
+  qtitle:       { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: S.md, letterSpacing: 0.2 },
   qsub:         { color: 'rgba(255,255,255,0.75)', fontSize: 11, marginTop: 3 },
 
-  evRow:        { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: 'rgba(23,19,46,0.80)', borderWidth: 1, borderColor: 'rgba(180,130,255,0.15)', borderRadius: RADIUS.md, marginHorizontal: S.lg, marginBottom: 10, padding: S.md },
+  evWrap:       { marginHorizontal: S.lg, marginBottom: 10 },
+  evRow:        { flexDirection: 'row', alignItems: 'center', gap: S.md, padding: S.md },
   evDate:       { backgroundColor: 'rgba(212,160,23,0.13)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.18)', borderRadius: S.sm, paddingHorizontal: S.sm, paddingVertical: 6, alignItems: 'center', minWidth: 40 },
   evDay:        { color: COLORS.gold2, fontSize: 17, fontWeight: '700', lineHeight: 20 },
   evMon:        { color: COLORS.dim, fontSize: 9, letterSpacing: 0.5, marginTop: 2 },
   evTitle:      { color: COLORS.text, fontSize: 13, fontWeight: '500' },
   evLoc:        { color: COLORS.muted, fontSize: 11, marginTop: 3 },
-  soonTag:      { backgroundColor: 'rgba(212,160,23,0.13)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.2)', borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 3 },
-  soonTx:       { color: COLORS.gold3, fontSize: 9 },
+  soonTag:      { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(245,204,92,0.5)', borderTopColor: 'rgba(255,255,255,0.38)', borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 3 },
+  soonTx:       { color: COLORS.gold3, fontSize: 9, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
   empty:        { color: COLORS.dim, fontSize: 13, textAlign: 'center', padding: S.xl },
 
   footer:       { flexDirection: 'row', alignItems: 'center', gap: S.md, marginHorizontal: S.lg, marginTop: S.lg, backgroundColor: 'rgba(212,160,23,0.08)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.2)', borderRadius: RADIUS.lg, padding: S.md },

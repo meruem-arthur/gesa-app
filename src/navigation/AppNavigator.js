@@ -347,12 +347,12 @@ export default function AppNavigator() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const tb = StyleSheet.create({
   wrapper:     { backgroundColor: 'rgba(13,10,28,0.98)', borderTopWidth: 0 },
-  topLine:     { height: 1, backgroundColor: COLORS.border },
+  topLine:     { height: 1, backgroundColor: 'rgba(232,184,42,0.28)' },
   row:         { flexDirection: 'row', paddingHorizontal: S.sm, paddingTop: S.sm, paddingBottom: 4 },
-  tab:         { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, borderRadius: RADIUS.lg, position: 'relative', minWidth: 56 },
-  tabActive:   { backgroundColor: 'rgba(212,160,23,0.08)' },
-  activeDot:   { position: 'absolute', top: 0, width: 18, height: 3, borderRadius: 2, backgroundColor: COLORS.gold2 },
-  label:       { fontSize: 9, color: COLORS.dim, marginTop: 3, fontWeight: '500' },
+  tab:         { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, borderRadius: RADIUS.lg, position: 'relative', minWidth: 56, borderWidth: 1, borderColor: 'transparent' },
+  tabActive:   { backgroundColor: 'rgba(232,184,42,0.10)', borderColor: 'rgba(245,204,92,0.35)', borderTopColor: 'rgba(255,255,255,0.3)' },
+  activeDot:   { position: 'absolute', top: -1, width: 24, height: 3, borderRadius: 2, backgroundColor: COLORS.gold3 },
+  label:       { fontSize: 9, color: COLORS.dim, marginTop: 3, fontWeight: '600', letterSpacing: 0.4 },
   labelActive: { color: COLORS.gold2, fontWeight: '700' },
 });
 

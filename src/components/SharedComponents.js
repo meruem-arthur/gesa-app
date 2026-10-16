@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { FadeLine } from './Glass';
 
 // ── Loading spinner ──────────────────────────────────────────
 export function Loader() {
@@ -99,7 +100,13 @@ const ob = StyleSheet.create({
 
 // ── Section label (uppercase muted) ─────────────────────────
 export function SectionLabel({ children }) {
-  return <Text style={styles.sectionLabel}>{children}</Text>;
+  return (
+    <View style={styles.sectionRow}>
+      <View style={styles.sectionDiamond} />
+      <Text style={styles.sectionLabel}>{children}</Text>
+      <FadeLine style={{ flex: 1 }} />
+    </View>
+  );
 }
 
 // ── Gold pill badge ──────────────────────────────────────────
@@ -195,15 +202,19 @@ const styles = StyleSheet.create({
   retryBtn: {
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
-    backgroundColor: COLORS.card2,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(245,204,92,0.45)',
+    borderTopColor: 'rgba(255,255,255,0.38)',
     marginTop: SPACING.sm,
   },
   retryText: {
     color: COLORS.gold2,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   emptyIcon: {
     fontSize: 36,
@@ -213,14 +224,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  sectionLabel: {
-    fontSize: 10,
-    color: COLORS.dim,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    paddingHorizontal: SPACING.xl,
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingLeft: SPACING.xl,
+    paddingRight: SPACING.lg,
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.sm,
+  },
+  sectionDiamond: {
+    width: 6,
+    height: 6,
+    backgroundColor: COLORS.gold2,
+    transform: [{ rotate: '45deg' }],
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.muted,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   goldBadge: {
     backgroundColor: 'rgba(212,160,23,0.15)',
@@ -233,7 +257,9 @@ const styles = StyleSheet.create({
   goldBadgeText: {
     color: COLORS.gold3,
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   purpleBadge: {
     backgroundColor: 'rgba(168,85,247,0.15)',
@@ -246,7 +272,9 @@ const styles = StyleSheet.create({
   purpleBadgeText: {
     color: COLORS.p300,
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   avatar: {
     alignItems: 'center',
@@ -278,17 +306,22 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     borderWidth: 1,
     borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderTopColor: 'rgba(255,255,255,0.14)',
   },
   pillActive: {
-    backgroundColor: 'rgba(212,160,23,0.14)',
-    borderColor: 'rgba(212,160,23,0.44)',
+    backgroundColor: 'rgba(232,184,42,0.14)',
+    borderColor: 'rgba(245,204,92,0.6)',
+    borderTopColor: 'rgba(255,255,255,0.4)',
   },
   pillText: {
     color: COLORS.muted,
     fontSize: 12,
+    letterSpacing: 0.3,
   },
   pillTextActive: {
     color: COLORS.gold3,
+    fontWeight: '700',
   },
   tabRow: {
     flexDirection: 'row',

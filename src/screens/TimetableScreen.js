@@ -4,7 +4,7 @@ import {
   StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
 import { useTimetable } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 
@@ -199,8 +199,8 @@ export default function TimetableScreen() {
 const styles = StyleSheet.create({
   screen:       { flex: 1, backgroundColor: COLORS.bg },
   hero:         { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
-  heroBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
-  heroBadgeTx:  { color: COLORS.gold3, fontSize: 10 },
+  heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
+  heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:    { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   heroSub:      { color: COLORS.muted, fontSize: 12, marginTop: 5 },
   summaryBar:   { flexDirection: 'row', marginHorizontal: S.lg, marginTop: S.md, marginBottom: S.sm, backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: S.md },

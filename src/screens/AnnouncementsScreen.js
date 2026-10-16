@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
 import { useAnnouncements } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState } from '../components/SharedComponents';
 
@@ -73,8 +73,8 @@ const S = SPACING;
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.bg },
   hero: { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
-  heroBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(124,58,237,0.2)', borderWidth: 1, borderColor: 'rgba(168,85,247,0.35)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
-  heroBadgeTx: { color: COLORS.p300, fontSize: 10 },
+  heroBadge:    { ...GLASS.chipPurple, marginBottom: S.sm },
+  heroBadgeTx:  { ...GLASS.chipPurpleText },
   heroTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   heroSub: { color: COLORS.muted, fontSize: 12, marginTop: 5 },
   card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, marginHorizontal: S.lg, marginBottom: 10, padding: S.lg },
