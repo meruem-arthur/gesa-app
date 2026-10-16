@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Alert, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +9,8 @@ import {
   orderBy, Timestamp, doc, updateDoc, increment,
 } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 
 const S = SPACING;
 
@@ -223,6 +223,7 @@ export default function ForumScreen() {
       <ScrollView style={styles.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Hero */}
         <View style={styles.hero}>
+<HeroMesh />
           <View style={styles.badge}>
             <Ionicons name="chatbubbles-outline" size={11} color={COLORS.p300} />
             <Text style={styles.badgeTx}>Anonymous · Open to all</Text>
@@ -275,9 +276,9 @@ export default function ForumScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:      { flex: 1, backgroundColor: COLORS.bg },
-  hero:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   badge:       { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(124,58,237,0.2)', borderWidth: 1, borderColor: 'rgba(168,85,247,0.35)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
   badgeTx:     { color: COLORS.p300, fontSize: 10 },
   heroTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -290,9 +291,9 @@ const styles = StyleSheet.create({
   tagTx:       { color: COLORS.muted, fontSize: 11 },
   tagTxOn:     { color: '#fff', fontWeight: '700' },
   empty:       { color: COLORS.dim, fontSize: 13, textAlign: 'center', marginTop: 32 },
-});
+}));
 
-const pc = StyleSheet.create({
+const pc = themed(() => ({
   card:     { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, marginBottom: S.md, padding: S.lg },
   top:      { flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.sm },
   avatar:   { width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
@@ -305,9 +306,9 @@ const pc = StyleSheet.create({
   actions:  { flexDirection: 'row', marginBottom: S.sm },
   likeBtn:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
   likeTx:   { color: COLORS.red, fontSize: 12 },
-});
+}));
 
-const rp = StyleSheet.create({
+const rp = themed(() => ({
   toggle:   { flexDirection: 'row', alignItems: 'center', gap: 5, paddingTop: S.sm, borderTopWidth: 1, borderTopColor: COLORS.border },
   toggleTx: { color: COLORS.muted, fontSize: 12 },
   thread:   { marginTop: S.sm, paddingLeft: S.md, borderLeftWidth: 2, borderLeftColor: COLORS.border },
@@ -318,9 +319,9 @@ const rp = StyleSheet.create({
   inputRow: { flexDirection: 'row', gap: S.sm, marginTop: S.sm, alignItems: 'flex-end' },
   input:    { flex: 1, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.sm, padding: S.sm, color: COLORS.text, fontSize: 13, maxHeight: 80 },
   sendBtn:  { backgroundColor: COLORS.gold2, borderRadius: RADIUS.sm, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-});
+}));
 
-const nf = StyleSheet.create({
+const nf = themed(() => ({
   box:        { backgroundColor: COLORS.card, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, margin: S.lg, padding: S.lg },
   heading:    { color: COLORS.gold2, fontSize: 12, fontWeight: '700', marginBottom: S.md, textTransform: 'uppercase', letterSpacing: 1 },
   titleInput: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.sm, padding: S.md, color: COLORS.text, fontSize: 14, fontWeight: '600', marginBottom: S.sm },
@@ -335,4 +336,4 @@ const nf = StyleSheet.create({
   cancelTx:   { color: COLORS.muted, fontSize: 13 },
   postBtn:    { flex: 1, padding: S.md, borderRadius: RADIUS.sm, backgroundColor: COLORS.gold2, alignItems: 'center' },
   postTx:     { color: '#000', fontWeight: '700', fontSize: 13 },
-});
+}));

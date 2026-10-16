@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { Platform, Alert } from 'react-native'
 import AppNavigator from './src/navigation/AppNavigator'
+import { ThemeProvider, useTheme } from './src/constants/ThemeContext'
 import { saveExpoPushToken } from './src/hooks/useFirestore'
 
 // ─── Show notifications when app is foregrounded ──────────────────────────────
@@ -61,15 +62,23 @@ async function registerPushToken() {
   }
 }
 
+// Light icons on the dark theme, dark icons on the light theme.
+function ThemedStatusBar() {
+  const { isDark } = useTheme()
+  return <StatusBar style={isDark ? 'light' : 'dark'} />
+}
+
 export default function App() {
   useEffect(() => {
     registerPushToken()
   }, [])
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </SafeAreaProvider>
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <ThemedStatusBar />
+        <AppNavigator />
+      </SafeAreaProvider>
+    </ThemeProvider>
   )
 }

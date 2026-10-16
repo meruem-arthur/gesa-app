@@ -5,10 +5,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
 import { useBusinesses, useSiteContent } from '../hooks/useFirestore';
 import { Loader, ErrorState, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 import { GlassCard, GlassButton } from '../components/Glass';
+import HeroMesh from '../components/HeroMesh';
 
 const S = SPACING;
 const DEFAULT_TITLE = 'Get in touch with student business entrepreneurs in GESA';
@@ -64,14 +65,14 @@ function Hero({ site }) {
       <View style={styles.heroScrim}>{inner}</View>
     </ImageBackground>
   ) : (
-    <View style={[styles.hero, { backgroundColor: '#1c1048' }]}>{inner}</View>
+    <View style={[styles.hero, { backgroundColor: COLORS.hero, ...COLORS.heroShape }]}><HeroMesh />{inner}</View>
   );
 }
 
 function BusinessCard({ business, onPress }) {
   return (
     <TouchableOpacity style={styles.cardWrap} activeOpacity={0.85} onPress={onPress}>
-      <GlassCard blur={false} tint="#a855f7" radius={RADIUS.md} edge={0.3} style={styles.card}>
+      <GlassCard blur={false} tint={COLORS.p400} radius={RADIUS.md} edge={0.3} style={styles.card}>
         <Logo business={business} size={64} />
         <View style={{ flex: 1 }}>
           <Text style={styles.name} numberOfLines={2}>{business.name}</Text>
@@ -160,7 +161,7 @@ function BusinessDetail({ business, onBack }) {
           </>
         )}
 
-        <GlassCard blur={false} tint="#e8b82a" radius={RADIUS.md} edge={0.28} style={styles.contactCard}>
+        <GlassCard blur={false} tint={COLORS.gold2} radius={RADIUS.md} edge={0.28} style={styles.contactCard}>
           <Text style={styles.sectionLabel}>GET IN TOUCH</Text>
           {!!business.phone && <Text style={styles.contactLine}>{business.phone}</Text>}
           {!!business.email && <Text style={styles.contactLine}>{business.email}</Text>}
@@ -171,7 +172,7 @@ function BusinessDetail({ business, onBack }) {
                 onPress={() => Linking.openURL(toTel(business.phone))} />
             )}
             {!!wa && (
-              <GlassButton icon="logo-whatsapp" iconColor={COLORS.green} tint="#4ade80" label="WhatsApp"
+              <GlassButton icon="logo-whatsapp" iconColor={COLORS.green} tint={COLORS.green} label="WhatsApp"
                 onPress={() => Linking.openURL(`https://wa.me/${wa}`)} />
             )}
             {!!business.email && (
@@ -257,10 +258,10 @@ export default function BusinessHubScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:       { flex: 1, backgroundColor: COLORS.bg },
   hero:         { width: '100%' },
-  heroScrim:    { backgroundColor: 'rgba(28,16,72,0.82)' },
+  heroScrim:    { backgroundColor: COLORS.heroScrim },
   heroInner:    { paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
@@ -307,4 +308,4 @@ const styles = StyleSheet.create({
   ownerName:    { color: COLORS.text, fontSize: 15, fontWeight: '700', marginTop: S.md },
   ownerLine:    { color: COLORS.muted, fontSize: 13, marginBottom: S.md },
   ownerLineName:{ color: COLORS.text, fontWeight: '700' },
-});
+}));

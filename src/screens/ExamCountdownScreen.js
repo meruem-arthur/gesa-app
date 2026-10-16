@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed, themedValue } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { Loader, ErrorState, EmptyState, PillRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 import { useExamsTimetable, useExams } from '../hooks/useFirestore';
 
@@ -25,7 +26,7 @@ const LEVELS = [
   { label: 'Level 400', value: 400 },
 ];
 
-const SESSION_COLOR = { Morning: COLORS.green, Afternoon: '#f59e0b', Evening: COLORS.purple };
+const SESSION_COLOR = themedValue(() => ({ Morning: COLORS.green, Afternoon: COLORS.amber, Evening: COLORS.purple }));
 
 function ExamSlotCard({ slot }) {
   const color = SESSION_COLOR[slot.sessionLabel] || COLORS.purple;
@@ -90,7 +91,7 @@ function Ticker({ examDate, now }) {
   const hrs  = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
   const secs = Math.floor((diff % 60000) / 1000);
-  const color = days === 0 ? COLORS.red : days < 7 ? '#f59e0b' : COLORS.green;
+  const color = days === 0 ? COLORS.red : days < 7 ? COLORS.amber : COLORS.green;
 
   return (
     <View style={tk.row}>
@@ -154,6 +155,7 @@ export default function ExamCountdownScreen() {
     >
       {/* ── 1. Hero ── */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.badge}>
           <Ionicons name="alarm-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.badgeTx}>Live Countdown</Text>
@@ -240,9 +242,9 @@ export default function ExamCountdownScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:           { flex: 1, backgroundColor: COLORS.bg },
-  hero:             { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:             { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   badge:            { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
   badgeTx:          { color: COLORS.gold3, fontSize: 10 },
   title:            { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -258,14 +260,14 @@ const styles = StyleSheet.create({
   ttTitle:          { color: COLORS.text, fontSize: 15, fontWeight: '700', marginBottom: S.sm, marginHorizontal: S.lg },
   quoteWrap:        { marginHorizontal: S.lg, marginTop: S.md, marginBottom: S.lg, alignItems: 'center', padding: S.lg, backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border },
   quoteTx:          { color: COLORS.muted, fontSize: 12, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
-});
+}));
 
-const eds = StyleSheet.create({
+const eds = themed(() => ({
   container:  { marginBottom: S.md },
   dateLabel:  { color: COLORS.gold3, fontSize: 12, fontWeight: '700', marginBottom: S.sm, marginTop: S.sm },
-});
+}));
 
-const ec = StyleSheet.create({
+const ec = themed(() => ({
   card:         { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, marginBottom: 8 },
   top:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   code:         { color: COLORS.gold3, fontSize: 13, fontWeight: '800' },
@@ -275,12 +277,12 @@ const ec = StyleSheet.create({
   metaRow:      { flexDirection: 'row', gap: S.lg, flexWrap: 'wrap' },
   metaItem:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText:     { color: COLORS.muted, fontSize: 11 },
-});
+}));
 
-const tk = StyleSheet.create({
+const tk = themed(() => ({
   row:  { flexDirection: 'row', gap: S.sm, marginTop: S.md },
   box:  { flex: 1, backgroundColor: COLORS.surface, borderWidth: 1, borderRadius: RADIUS.sm, alignItems: 'center', paddingVertical: S.sm },
   val:  { fontSize: 22, fontWeight: '800' },
   lbl:  { color: COLORS.dim, fontSize: 9, marginTop: 2 },
   done: { color: COLORS.dim, fontSize: 12, marginTop: S.sm, textAlign: 'center' },
-});
+}));

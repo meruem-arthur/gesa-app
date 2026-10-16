@@ -4,11 +4,10 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
-  StyleSheet,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
 import { FadeLine } from './Glass';
 
 // ── Loading spinner ──────────────────────────────────────────
@@ -80,7 +79,7 @@ export function appRefreshControl(refreshing, onRefresh) {
   );
 }
 
-const ob = StyleSheet.create({
+const ob = themed(() => ({
   wrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,7 +95,7 @@ const ob = StyleSheet.create({
     borderRadius: RADIUS.md,
   },
   text: { flex: 1, color: COLORS.gold3, fontSize: 11, lineHeight: 15 },
-});
+}));
 
 // ── Section label (uppercase muted) ─────────────────────────
 export function SectionLabel({ children }) {
@@ -186,7 +185,7 @@ export function TabRow({ tabs, selected, onSelect }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   center: {
     flex: 1,
     alignItems: 'center',
@@ -202,11 +201,11 @@ const styles = StyleSheet.create({
   retryBtn: {
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: COLORS.glassBtnFill,
     borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: 'rgba(245,204,92,0.45)',
-    borderTopColor: 'rgba(255,255,255,0.38)',
+    borderColor: COLORS.border2,
+    borderTopColor: COLORS.glassHighlight,
     marginTop: SPACING.sm,
   },
   retryText: {
@@ -306,13 +305,13 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderTopColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: COLORS.fillSoft,
+    borderTopColor: COLORS.glassHighlight,
   },
   pillActive: {
     backgroundColor: 'rgba(232,184,42,0.14)',
     borderColor: 'rgba(245,204,92,0.6)',
-    borderTopColor: 'rgba(255,255,255,0.4)',
+    borderTopColor: COLORS.glassHighlight,
   },
   pillText: {
     color: COLORS.muted,
@@ -347,4 +346,4 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: COLORS.gold2,
   },
-});
+}));

@@ -5,7 +5,7 @@ import {
 import { BlurView } from 'expo-blur';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
 
 // "#e8b82a", 0.3  →  "rgba(232,184,42,0.3)"
 export function rgba(hex, a) {
@@ -17,12 +17,12 @@ export function rgba(hex, a) {
 
 // Diagonal "light catching glass" sheen: bright white corner → tint → tint.
 function Sheen({ tint, strength }) {
-  const id = `sheen-${String(tint).replace('#', '')}-${Math.round(strength * 100)}`;
+  const id = `sheen-${COLORS.isDark ? 'd' : 'l'}-${String(tint).replace('#', '')}-${Math.round(strength * 100)}`;
   return (
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <LinearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0"    stopColor="#ffffff" stopOpacity={Math.min(0.5, 0.16 * strength)} />
+          <Stop offset="0"    stopColor="#ffffff" stopOpacity={Math.min(0.6, COLORS.glassSheenTop * strength)} />
           <Stop offset="0.45" stopColor={tint}    stopOpacity={Math.min(0.5, 0.07 * strength)} />
           <Stop offset="1"    stopColor={tint}    stopOpacity={Math.min(0.6, 0.14 * strength)} />
         </LinearGradient>
@@ -64,7 +64,7 @@ export function GlassCard({
           overflow: 'hidden',
           borderWidth: 1,
           borderColor: rgba(tint, edge),
-          backgroundColor: blur ? 'rgba(14,10,34,0.38)' : 'rgba(26,20,58,0.6)',
+          backgroundColor: blur ? COLORS.glassBase : COLORS.glassBaseFlat,
         },
         style,
       ]}
@@ -72,7 +72,7 @@ export function GlassCard({
       {blur && (
         <BlurView
           intensity={intensity}
-          tint="dark"
+          tint={COLORS.blurTint}
           experimentalBlurMethod={realBlur && Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
           style={StyleSheet.absoluteFill}
         />
@@ -107,7 +107,8 @@ export function PulseDot({ color = COLORS.gold2, size = 6 }) {
 }
 
 // Horizontal hairline that fades out to the right.
-export function FadeLine({ color = '#e8b82a', style }) {
+export function FadeLine({ color, style }) {
+  color = color || COLORS.gold2;
   const id = `fade-${color.replace('#', '')}`;
   return (
     <View style={[{ height: 1 }, style]}>
@@ -144,7 +145,7 @@ export function GlassButton({
           g.btnInner,
           primary
             ? { borderColor: 'rgba(255,255,255,0.45)' }
-            : { borderColor: rgba(tint, 0.45), backgroundColor: 'rgba(255,255,255,0.05)' },
+            : { borderColor: rgba(tint, 0.45), backgroundColor: COLORS.glassBtnFill },
         ]}
       >
         {primary ? (
@@ -168,8 +169,8 @@ export function GlassButton({
   );
 }
 
-const g = StyleSheet.create({
-  topEdge: { position: 'absolute', top: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.38)' },
+const g = themed(() => ({
+  topEdge: { position: 'absolute', top: 0, height: 1, backgroundColor: COLORS.glassHighlight },
   primaryShadow: {
     shadowColor: '#e8b82a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.55, shadowRadius: 10, elevation: 8,
   },
@@ -179,4 +180,4 @@ const g = StyleSheet.create({
     borderRadius: RADIUS.md, borderWidth: 1, overflow: 'hidden',
   },
   btnTx: { fontSize: 13, fontWeight: '700', letterSpacing: 0.4 },
-});
+}));

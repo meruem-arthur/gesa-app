@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useMaterials } from '../hooks/useFirestore';
 import { useDownloads } from '../hooks/useDownloads';
 import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
@@ -46,6 +47,7 @@ export default function MaterialsScreen() {
       refreshControl={appRefreshControl(refreshing, refresh)}
     >
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="book-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>Course Resources</Text>
@@ -59,7 +61,7 @@ export default function MaterialsScreen() {
       {downloadedInView.length > 0 && (
         <>
           <View style={styles.downloadedHeader}>
-            <Ionicons name="checkmark-circle" size={13} color="#22c55e" />
+            <Ionicons name="checkmark-circle" size={13} color={COLORS.ok} />
             <Text style={styles.downloadedHeaderTx}>Downloaded</Text>
           </View>
           {downloadedInView.map((course) => (
@@ -71,7 +73,7 @@ export default function MaterialsScreen() {
             >
               <View style={styles.crowLeft}>
                 <View style={styles.cico}>
-                  <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.ok} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.codeRow}>
@@ -131,7 +133,7 @@ export default function MaterialsScreen() {
                 <ActivityIndicator size="small" color={COLORS.gold2} />
               ) : isDownloaded ? (
                 <>
-                  <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
+                  <Ionicons name="checkmark-circle" size={14} color={COLORS.ok} />
                   <Text style={styles.openTx}>Open</Text>
                 </>
               ) : (
@@ -148,15 +150,15 @@ export default function MaterialsScreen() {
 }
 
 const S = SPACING;
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen: { flex: 1, backgroundColor: COLORS.bg },
-  hero: { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero: { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   heroSub: { color: COLORS.muted, fontSize: 12, marginTop: 5 },
   downloadedHeader: { flexDirection: 'row', alignItems: 'center', gap: 5, marginHorizontal: S.lg, marginTop: S.lg, marginBottom: S.sm },
-  downloadedHeaderTx: { color: '#22c55e', fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
+  downloadedHeaderTx: { color: COLORS.ok, fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   sectionDivider: { height: 1, backgroundColor: COLORS.border, marginHorizontal: S.lg, marginTop: S.sm, marginBottom: 4 },
   crow: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, marginHorizontal: S.lg, marginBottom: 8, padding: S.md },
   crowLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: S.md },
@@ -167,5 +169,5 @@ const styles = StyleSheet.create({
   cname: { color: COLORS.text, fontSize: 12, marginTop: 2 },
   downloadBtn: { width: 52, height: 36, alignItems: 'center', justifyContent: 'center' },
   downloadBtnOpen: { flexDirection: 'row', gap: 3, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: RADIUS.pill, paddingHorizontal: 6 },
-  openTx: { color: '#22c55e', fontSize: 11, fontWeight: '600' },
-});
+  openTx: { color: COLORS.ok, fontSize: 11, fontWeight: '600' },
+}));

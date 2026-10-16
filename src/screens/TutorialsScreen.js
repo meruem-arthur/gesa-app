@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Image, Clipboard, Alert, Linking,
+  Image, Clipboard, Alert, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useTutorials } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState } from '../components/SharedComponents';
 
@@ -39,6 +40,7 @@ export default function TutorialsScreen() {
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       {/* Hero */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="play-circle-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>Video Guides</Text>
@@ -125,9 +127,9 @@ export default function TutorialsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:      { flex: 1, backgroundColor: COLORS.bg },
-  hero:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -145,7 +147,7 @@ const styles = StyleSheet.create({
   cardBody:    { padding: S.md },
   tutTitle:    { color: COLORS.text, fontSize: 14, fontWeight: '700', marginBottom: 6 },
   swBadge:     { alignSelf: 'flex-start', backgroundColor: 'rgba(124,58,237,0.15)', paddingHorizontal: S.sm, paddingVertical: 2, borderRadius: RADIUS.pill, marginBottom: 6 },
-  swBadgeTx:   { color: '#c084fc', fontSize: 10, fontWeight: '600' },
+  swBadgeTx:   { color: COLORS.p300, fontSize: 10, fontWeight: '600' },
   desc:        { color: COLORS.muted, fontSize: 12, lineHeight: 18, marginBottom: S.sm },
 
   btnRow:      { flexDirection: 'row', gap: S.sm, marginTop: S.sm },
@@ -153,4 +155,4 @@ const styles = StyleSheet.create({
   copyBtnTx:   { color: COLORS.gold2, fontSize: 13, fontWeight: '600' },
   watchBtn:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: RADIUS.md, backgroundColor: COLORS.gold2 },
   watchBtnTx:  { color: '#000', fontSize: 13, fontWeight: '700' },
-});
+}));

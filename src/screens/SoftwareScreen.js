@@ -1,23 +1,24 @@
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Image, Clipboard, Alert, Linking,
+  Image, Clipboard, Alert, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed, themedValue } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useSoftware } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState } from '../components/SharedComponents';
 
 const S = SPACING;
 
-const CAT_COLORS = [
-  { bg: 'rgba(124,58,237,0.15)', color: '#c084fc' },
-  { bg: 'rgba(96,165,250,0.13)', color: '#60a5fa' },
-  { bg: 'rgba(212,160,23,0.13)', color: '#f5cc5c' },
-  { bg: 'rgba(74,222,128,0.11)', color: '#4ade80' },
+const CAT_COLORS = themedValue(() => [
+  { bg: 'rgba(124,58,237,0.15)', color: COLORS.p300 },
+  { bg: 'rgba(96,165,250,0.13)', color: COLORS.blue },
+  { bg: 'rgba(212,160,23,0.13)', color: COLORS.gold3 },
+  { bg: 'rgba(74,222,128,0.11)', color: COLORS.green },
   { bg: 'rgba(251,146,60,0.13)', color: '#fb923c' },
   { bg: 'rgba(244,114,182,0.13)',color: '#f472b6' },
-];
+]);
 
 function catColor(cat, allCats) {
   const idx = allCats.indexOf(cat) % CAT_COLORS.length;
@@ -53,6 +54,7 @@ export default function SoftwareScreen() {
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       {/* Hero */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="desktop-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>Desktop Programs</Text>
@@ -156,7 +158,7 @@ export default function SoftwareScreen() {
                 onPress={() => handleOpenLink(sw.installVideoUrl)}
                 activeOpacity={0.75}
               >
-                <Ionicons name="play-circle-outline" size={15} color="#c084fc" />
+                <Ionicons name="play-circle-outline" size={15} color={COLORS.p300} />
                 <Text style={styles.installBtnTx}>Watch Install Guide</Text>
               </TouchableOpacity>
             )}
@@ -169,9 +171,9 @@ export default function SoftwareScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:      { flex: 1, backgroundColor: COLORS.bg },
-  hero:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -203,5 +205,5 @@ const styles = StyleSheet.create({
   openBtn:     { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: RADIUS.md, backgroundColor: COLORS.gold2 },
   openBtnTx:   { color: '#000', fontSize: 13, fontWeight: '700' },
   installBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(124,58,237,0.35)', backgroundColor: 'rgba(124,58,237,0.08)', marginTop: S.sm },
-  installBtnTx:{ color: '#c084fc', fontSize: 13, fontWeight: '600' },
-});
+  installBtnTx:{ color: COLORS.p300, fontSize: 13, fontWeight: '600' },
+}));

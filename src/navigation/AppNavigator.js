@@ -1,13 +1,14 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback,
   ScrollView, Modal, TextInput, Alert, Animated, Dimensions, Image,
 } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
+import { useTheme } from '../constants/ThemeContext';
 
 import HomeScreen            from '../screens/HomeScreen';
 import AnnouncementsScreen   from '../screens/AnnouncementsScreen';
@@ -113,6 +114,35 @@ function AdminPasswordModal({ visible, onCancel, onSuccess }) {
   );
 }
 
+// ─── Light / Dark switch ──────────────────────────────────────────────────────
+function ThemeSwitch() {
+  const { name, setTheme } = useTheme();
+  const OPTIONS = [
+    { key: 'light', icon: 'sunny-outline', label: 'Light' },
+    { key: 'dark',  icon: 'moon-outline',  label: 'Dark'  },
+  ];
+  return (
+    <View style={sw.wrap}>
+      {OPTIONS.map(o => {
+        const on = name === o.key;
+        return (
+          <TouchableOpacity
+            key={o.key}
+            style={[sw.opt, on && sw.optOn]}
+            onPress={() => setTheme(o.key)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityState={{ selected: on }}
+          >
+            <Ionicons name={on ? o.icon.replace('-outline', '') : o.icon} size={15} color={on ? COLORS.gold2 : COLORS.muted} />
+            <Text style={[sw.tx, on && sw.txOn]}>{o.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
   const insets  = useSafeAreaInsets();
@@ -183,6 +213,11 @@ function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
 
         <View style={sd.divider} />
 
+        <Text style={sd.sectionLabel}>APPEARANCE</Text>
+        <ThemeSwitch />
+
+        <View style={sd.divider} />
+
         <Text style={sd.sectionLabel}>MORE SCREENS</Text>
 
         <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
@@ -221,10 +256,15 @@ function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
 // ─── Custom tab bar ───────────────────────────────────────────────────────────
 function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress, onHomeTap }) {
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
 
   return (
-    <View style={[tb.wrapper, { paddingBottom: insets.bottom || 8 }]}>
-      <View style={tb.topLine} />
+    <View
+      style={isDark
+        ? [tb.wrapper, { paddingBottom: insets.bottom || 8 }]
+        : [tb.wrapperFloat, { marginBottom: Math.max(insets.bottom, 8) }]}
+    >
+      {isDark && <View style={tb.topLine} />}
       <View style={tb.row}>
         {tabs.map(tab => {
           const isActive = activeTab === tab.name;
@@ -268,6 +308,7 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
   // insets.top is measured from the real window, so it is 0 where the OS already
   // keeps content below the status bar, and the inset is never counted twice.
   const insets = useSafeAreaInsets();
+  useTheme();   // re-render the whole screen tree when the theme changes
   const [activeTab,    setActiveTab]    = useState('Home');
   const [sidebarOpen,  setSidebarOpen]  = useState(false);
 
@@ -314,13 +355,19 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
 
 // ─── Root navigator ───────────────────────────────────────────────────────────
 export default function AppNavigator() {
+  const { isDark } = useTheme();
+  const navTheme = useMemo(() => ({
+    ...DefaultTheme,
+    dark: isDark,
+    colors: { ...DefaultTheme.colors, background: COLORS.bg, card: COLORS.bg, text: COLORS.text, border: COLORS.border, primary: COLORS.gold2 },
+  }), [isDark]);
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const [pwdVisible,    setPwdVisible]    = useState(false);
 
   const handleSecretTap = useAdminUnlock(() => setPwdVisible(true));
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <AdminPasswordModal
         visible={pwdVisible}
         onCancel={() => setPwdVisible(false)}
@@ -345,8 +392,9 @@ export default function AppNavigator() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const tb = StyleSheet.create({
-  wrapper:     { backgroundColor: 'rgba(13,10,28,0.98)', borderTopWidth: 0 },
+const tb = themed(() => ({
+  wrapper:     { backgroundColor: COLORS.tabBar, borderTopWidth: 0 },
+  wrapperFloat:{ marginHorizontal: 14, borderRadius: 30, backgroundColor: COLORS.tabBar, borderWidth: 1, borderColor: COLORS.border, borderTopColor: COLORS.glassHighlight, paddingBottom: 4, ...COLORS.shadow },
   topLine:     { height: 1, backgroundColor: 'rgba(232,184,42,0.28)' },
   row:         { flexDirection: 'row', paddingHorizontal: S.sm, paddingTop: S.sm, paddingBottom: 4 },
   tab:         { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, borderRadius: RADIUS.lg, position: 'relative', minWidth: 56, borderWidth: 1, borderColor: 'transparent' },
@@ -354,11 +402,11 @@ const tb = StyleSheet.create({
   activeDot:   { position: 'absolute', top: -1, width: 24, height: 3, borderRadius: 2, backgroundColor: COLORS.gold3 },
   label:       { fontSize: 9, color: COLORS.dim, marginTop: 3, fontWeight: '600', letterSpacing: 0.4 },
   labelActive: { color: COLORS.gold2, fontWeight: '700' },
-});
+}));
 
-const sd = StyleSheet.create({
+const sd = themed(() => ({
   backdrop:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  drawer:         { position: 'absolute', top: 0, left: 0, bottom: 0, backgroundColor: '#110d2a', borderRightWidth: 1, borderRightColor: COLORS.border, paddingHorizontal: 0 },
+  drawer:         { position: 'absolute', top: 0, left: 0, bottom: 0, backgroundColor: COLORS.sheet, borderRightWidth: 1, borderRightColor: COLORS.border, paddingHorizontal: 0 },
   header:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingBottom: 16 },
   logoWrap:       { width: 42, height: 42, borderRadius: 10, backgroundColor: 'rgba(212,160,23,0.1)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   logo:           { width: 36, height: 36 },
@@ -368,24 +416,32 @@ const sd = StyleSheet.create({
   sectionLabel:   { color: COLORS.dim, fontSize: 9, fontWeight: '700', letterSpacing: 1.2, paddingHorizontal: 20, marginBottom: 6 },
   item:           { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 20, marginHorizontal: 10, borderRadius: RADIUS.md, marginBottom: 2, position: 'relative' },
   itemActive:     { backgroundColor: 'rgba(212,160,23,0.08)' },
-  itemIco:        { width: 34, height: 34, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center' },
+  itemIco:        { width: 34, height: 34, borderRadius: 8, backgroundColor: COLORS.fillSoft, alignItems: 'center', justifyContent: 'center' },
   itemIcoActive:  { backgroundColor: 'rgba(212,160,23,0.13)' },
   itemLabel:      { color: COLORS.muted, fontSize: 13, fontWeight: '500', flex: 1 },
   itemLabelActive:{ color: COLORS.gold2, fontWeight: '700' },
   activeBar:      { position: 'absolute', right: 10, width: 3, height: 20, borderRadius: 2, backgroundColor: COLORS.gold2 },
   footer:         { color: COLORS.dim, fontSize: 9, textAlign: 'center', paddingHorizontal: 20, paddingTop: 4 },
-});
+}));
 
-const ms = StyleSheet.create({
+const sw = themed(() => ({
+  wrap:  { flexDirection: 'row', marginHorizontal: 20, padding: 4, borderRadius: RADIUS.pill, backgroundColor: COLORS.fillSoft, borderWidth: 1, borderColor: COLORS.border },
+  opt:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: RADIUS.pill, borderWidth: 1, borderColor: 'transparent' },
+  optOn: { backgroundColor: 'rgba(232,184,42,0.14)', borderColor: 'rgba(245,204,92,0.5)' },
+  tx:    { color: COLORS.muted, fontSize: 12, fontWeight: '600', letterSpacing: 0.3 },
+  txOn:  { color: COLORS.gold3, fontWeight: '700' },
+}));
+
+const ms = themed(() => ({
   overlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   box:        { backgroundColor: COLORS.card, borderRadius: 16, padding: 24, width: '100%', borderWidth: 1, borderColor: COLORS.border },
   title:      { color: COLORS.text, fontSize: 16, fontWeight: '700', marginBottom: 6, textAlign: 'center' },
   sub:        { color: COLORS.muted, fontSize: 12, marginBottom: 16, textAlign: 'center' },
   input:      { backgroundColor: COLORS.bg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, padding: 12, color: COLORS.text, fontSize: 14, marginBottom: 6 },
-  err:        { color: '#f87171', fontSize: 12, marginBottom: 6 },
+  err:        { color: COLORS.red, fontSize: 12, marginBottom: 6 },
   btns:       { flexDirection: 'row', gap: 12, marginTop: 8 },
   cancelBtn:  { flex: 1, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center' },
   cancelTx:   { color: COLORS.muted, fontSize: 13 },
   confirmBtn: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: COLORS.gold2, alignItems: 'center' },
   confirmTx:  { color: '#000', fontSize: 13, fontWeight: '700' },
-});
+}));

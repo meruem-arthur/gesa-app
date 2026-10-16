@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  TextInput, StyleSheet, Alert,
+  TextInput, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 
 // ─── UMaT Grading Scale ───────────────────────────────────────────────────────
 // Source: Conduct of Undergraduate Programmes 2022, Section 6.1
@@ -25,21 +26,21 @@ function getGrade(mark) {
 function getGradeColor(grade) {
   if (!grade) return COLORS.muted;
   switch (grade.grade) {
-    case 'A': return '#4ade80';
-    case 'B': return '#60a5fa';
+    case 'A': return COLORS.green;
+    case 'B': return COLORS.blue;
     case 'C': return COLORS.gold2;
-    case 'D': return '#f59e0b';
-    case 'F': return '#f87171';
+    case 'D': return COLORS.amber;
+    case 'F': return COLORS.red;
     default:  return COLORS.muted;
   }
 }
 
 function getCWAClass(cwa) {
-  if (cwa >= 80) return { label: 'First Class',        color: '#4ade80' };
-  if (cwa >= 70) return { label: 'Second Class Upper', color: '#60a5fa' };
+  if (cwa >= 80) return { label: 'First Class',        color: COLORS.green };
+  if (cwa >= 70) return { label: 'Second Class Upper', color: COLORS.blue };
   if (cwa >= 60) return { label: 'Second Class Lower', color: COLORS.gold2 };
-  if (cwa >= 50) return { label: 'Third Class',        color: '#f59e0b' };
-  return            { label: 'Fail',                  color: '#f87171' };
+  if (cwa >= 50) return { label: 'Third Class',        color: COLORS.amber };
+  return            { label: 'Fail',                  color: COLORS.red };
 }
 
 const S = SPACING;
@@ -207,6 +208,7 @@ export default function CWAScreen() {
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       {/* Hero */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="calculator-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>UMaT Grading System</Text>
@@ -301,15 +303,15 @@ export default function CWAScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:      { flex: 1, backgroundColor: COLORS.bg },
-  hero:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   heroSub:     { color: COLORS.muted, fontSize: 12, marginTop: 5 },
 
-  resultCard:  { backgroundColor: '#1e1545', borderWidth: 1, borderColor: 'rgba(212,160,23,0.24)', borderRadius: RADIUS.xl, marginHorizontal: S.lg, marginTop: S.lg, padding: S.xl, alignItems: 'center' },
+  resultCard:  { backgroundColor: COLORS.cardStrong, borderWidth: 1, borderColor: 'rgba(212,160,23,0.24)', borderRadius: RADIUS.xl, marginHorizontal: S.lg, marginTop: S.lg, padding: S.xl, alignItems: 'center' },
   resultLbl:   { color: COLORS.muted, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
   resultCWA:   { fontSize: 52, fontWeight: '800', lineHeight: 60 },
   clsBadge:    { borderWidth: 1, borderRadius: RADIUS.pill, paddingHorizontal: S.lg, paddingVertical: 5, marginTop: S.sm },
@@ -336,9 +338,9 @@ const styles = StyleSheet.create({
   remSemTx:    { color: COLORS.red, fontSize: 13, fontWeight: '600' },
   resetBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: S.sm, marginTop: S.md, paddingVertical: S.sm },
   resetTx:     { color: COLORS.dim, fontSize: 12 },
-});
+}));
 
-const blk = StyleSheet.create({
+const blk = themed(() => ({
   box:       { backgroundColor: COLORS.card, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, marginBottom: S.md, overflow: 'hidden' },
   header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: S.md, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   headerLeft:{ flexDirection: 'row', alignItems: 'center', gap: S.md },
@@ -354,4 +356,4 @@ const blk = StyleSheet.create({
   empty:     { color: COLORS.dim, fontSize: 12, textAlign: 'center', padding: S.lg },
   sumRow:    { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: S.md, paddingVertical: S.sm, backgroundColor: COLORS.surface },
   sumTx:     { color: COLORS.muted, fontSize: 11 },
-});
+}));

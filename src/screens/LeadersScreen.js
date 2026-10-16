@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  Linking, StyleSheet, Image,
+  Linking, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useExecutives, useLecturers } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState, GoldBadge, PurpleBadge } from '../components/SharedComponents';
 
@@ -51,10 +52,10 @@ function PersonAvatar({ photoUrl, name, bgColor, size = 43 }) {
   );
 }
 
-const av = StyleSheet.create({
+const av = themed(() => ({
   circle:   { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(212,160,23,0.2)' },
   initials: { color: '#fff', fontWeight: '700' },
-});
+}));
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function LeadersScreen() {
@@ -65,6 +66,7 @@ export default function LeadersScreen() {
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="people-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>2024/25 Executives</Text>
@@ -159,9 +161,9 @@ export default function LeadersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:      { flex: 1, backgroundColor: COLORS.bg },
-  hero:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -175,4 +177,4 @@ const styles = StyleSheet.create({
   lname:       { color: COLORS.text, fontSize: 13, fontWeight: '600' },
   lrole:       { color: COLORS.muted, fontSize: 11, marginTop: 2 },
   phone:       { color: COLORS.gold2, fontSize: 11, marginTop: 3 },
-});
+}));

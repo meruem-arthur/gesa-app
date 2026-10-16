@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { usePastQuestions } from '../hooks/useFirestore';
 import { useDownloads } from '../hooks/useDownloads';
 import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
@@ -41,6 +42,7 @@ export default function PastQScreen() {
       refreshControl={appRefreshControl(refreshing, refresh)}
     >
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadgePurple}>
           <Ionicons name="document-outline" size={11} color={COLORS.p300} />
           <Text style={styles.heroBadgePurpleTx}>Exam Prep</Text>
@@ -111,7 +113,7 @@ export default function PastQScreen() {
                 <ActivityIndicator size="small" color={COLORS.p300} />
               ) : isDownloaded ? (
                 <>
-                  <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
+                  <Ionicons name="checkmark-circle" size={14} color={COLORS.ok} />
                   <Text style={styles.openTx}>Open</Text>
                 </>
               ) : (
@@ -128,9 +130,9 @@ export default function PastQScreen() {
 }
 
 const S = SPACING;
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen: { flex: 1, backgroundColor: COLORS.bg },
-  hero: { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero: { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadgePurple: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(124,58,237,0.2)', borderWidth: 1, borderColor: 'rgba(168,85,247,0.35)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
   heroBadgePurpleTx: { color: COLORS.p300, fontSize: 10 },
   heroTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -150,5 +152,5 @@ const styles = StyleSheet.create({
   yearBadgeTx: { color: COLORS.gold3, fontSize: 9 },
   downloadBtn: { width: 52, height: 36, alignItems: 'center', justifyContent: 'center' },
   downloadBtnOpen: { flexDirection: 'row', gap: 3, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: RADIUS.pill, paddingHorizontal: 6 },
-  openTx: { color: '#22c55e', fontSize: 11, fontWeight: '600' },
-});
+  openTx: { color: COLORS.ok, fontSize: 11, fontWeight: '600' },
+}));

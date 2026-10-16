@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
+  ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { addReport } from '../hooks/useFirestore';
 
 const S = SPACING;
@@ -39,6 +40,7 @@ export default function ReportScreen() {
     return (
       <View style={styles.screen}>
         <View style={styles.hero}>
+<HeroMesh />
           <View style={styles.heroBadge}>
             <Ionicons name="flag-outline" size={11} color={COLORS.gold3} />
             <Text style={styles.heroBadgeTx}>Anonymous</Text>
@@ -49,7 +51,7 @@ export default function ReportScreen() {
 
         <View style={styles.successWrap}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark-circle" size={56} color="#22c55e" />
+            <Ionicons name="checkmark-circle" size={56} color={COLORS.ok} />
           </View>
           <Text style={styles.successTitle}>Report sent!</Text>
           <Text style={styles.successSub}>
@@ -71,6 +73,7 @@ export default function ReportScreen() {
     >
       <ScrollView style={styles.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.hero}>
+<HeroMesh />
           <View style={styles.heroBadge}>
             <Ionicons name="flag-outline" size={11} color={COLORS.gold3} />
             <Text style={styles.heroBadgeTx}>Anonymous</Text>
@@ -94,7 +97,7 @@ export default function ReportScreen() {
 
           {!!error && (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle-outline" size={14} color="#f87171" />
+              <Ionicons name="alert-circle-outline" size={14} color={COLORS.red} />
               <Text style={styles.errorTx}>{error}</Text>
             </View>
           )}
@@ -130,9 +133,9 @@ export default function ReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:        { flex: 1, backgroundColor: COLORS.bg },
-  hero:          { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:          { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:     { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
   textarea:      { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: S.md, color: COLORS.text, fontSize: 13, minHeight: 160, lineHeight: 19 },
   counter:       { color: COLORS.dim, fontSize: 10, textAlign: 'right', marginTop: 4 },
   errorBox:      { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(248,113,113,0.1)', borderWidth: 1, borderColor: 'rgba(248,113,113,0.25)', borderRadius: RADIUS.sm, padding: S.sm, marginTop: S.sm },
-  errorTx:       { color: '#f87171', fontSize: 12, flex: 1 },
+  errorTx:       { color: COLORS.red, fontSize: 12, flex: 1 },
   sendBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.gold2, borderRadius: RADIUS.md, paddingVertical: 13, marginTop: S.lg },
   sendBtnDisabled: { opacity: 0.5 },
   sendTx:        { color: '#000', fontSize: 13, fontWeight: '700' },
@@ -154,4 +157,4 @@ const styles = StyleSheet.create({
   successSub:    { color: COLORS.muted, fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: S.xl },
   againBtn:      { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: 'rgba(212,160,23,0.3)', borderRadius: RADIUS.pill, paddingHorizontal: S.lg, paddingVertical: 10 },
   againTx:       { color: COLORS.gold2, fontSize: 12, fontWeight: '600' },
-});
+}));

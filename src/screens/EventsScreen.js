@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  View, Text, ScrollView, TouchableOpacity,
   Image, Modal, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed, themedValue } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useEvents } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState, SectionLabel } from '../components/SharedComponents';
 
@@ -25,13 +26,13 @@ function isComingSoon(val) {
   return diff >= 0 && diff <= 7;
 }
 
-const TAG_STYLES = {
-  General:  { bg: 'rgba(168,85,247,0.15)', color: '#c084fc' },
-  Academic: { bg: 'rgba(96,165,250,0.13)',  color: '#60a5fa' },
-  Formal:   { bg: 'rgba(212,160,23,0.13)',  color: '#f5cc5c' },
-  Social:   { bg: 'rgba(74,222,128,0.11)',  color: '#4ade80' },
-  default:  { bg: 'rgba(168,85,247,0.15)', color: '#c084fc' },
-};
+const TAG_STYLES = themedValue(() => ({
+  General:  { bg: 'rgba(168,85,247,0.15)', color: COLORS.p300 },
+  Academic: { bg: 'rgba(96,165,250,0.13)',  color: COLORS.blue },
+  Formal:   { bg: 'rgba(212,160,23,0.13)',  color: COLORS.gold3 },
+  Social:   { bg: 'rgba(74,222,128,0.11)',  color: COLORS.green },
+  default:  { bg: 'rgba(168,85,247,0.15)', color: COLORS.p300 },
+}));
 
 // ─── Event detail modal ───────────────────────────────────────────────────────
 function EventDetailModal({ event, onClose }) {
@@ -45,7 +46,7 @@ function EventDetailModal({ event, onClose }) {
         <View style={md.sheet}>
           {/* Close button */}
           <TouchableOpacity style={md.closeBtn} onPress={onClose} activeOpacity={0.75}>
-            <Ionicons name="close" size={20} color={COLORS.text} />
+            <Ionicons name="close" size={20} color="#fff" />
           </TouchableOpacity>
 
           <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
@@ -118,6 +119,7 @@ export default function EventsScreen() {
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
+<HeroMesh />
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
             <Text style={styles.liveTx}>Live updates</Text>
@@ -219,16 +221,16 @@ export default function EventsScreen() {
 }
 
 const S = SPACING;
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:      { flex: 1, backgroundColor: COLORS.bg },
-  hero:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   liveBadge:   { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: 'rgba(74,222,128,0.08)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.22)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
   liveDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.green },
   liveTx:      { color: COLORS.green, fontSize: 10 },
   heroTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   heroSub:     { color: COLORS.muted, fontSize: 12, marginTop: 5 },
 
-  bigCard:     { backgroundColor: '#1e1545', borderWidth: 1, borderColor: 'rgba(212,160,23,0.24)', borderRadius: RADIUS.xl, marginHorizontal: S.lg, marginBottom: S.md, overflow: 'hidden' },
+  bigCard:     { backgroundColor: COLORS.cardStrong, borderWidth: 1, borderColor: 'rgba(212,160,23,0.24)', borderRadius: RADIUS.xl, marginHorizontal: S.lg, marginBottom: S.md, overflow: 'hidden' },
   bigImage:    { width: '100%', height: 180 },
   bigDotRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: S.sm, paddingHorizontal: S.lg, paddingTop: S.md },
   bigComingTx: { color: COLORS.gold3, fontSize: 10, letterSpacing: 0.5 },
@@ -249,11 +251,11 @@ const styles = StyleSheet.create({
   evLocTx:     { color: COLORS.muted, fontSize: 11 },
   evTag:       { paddingHorizontal: S.sm, paddingVertical: 3, borderRadius: RADIUS.pill, marginRight: S.md },
   evTagTx:     { fontSize: 9, fontWeight: '600' },
-});
+}));
 
-const md = StyleSheet.create({
+const md = themed(() => ({
   overlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  sheet:      { backgroundColor: '#110d2a', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', overflow: 'hidden' },
+  sheet:      { backgroundColor: COLORS.sheet, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', overflow: 'hidden' },
   closeBtn:   { position: 'absolute', top: 14, right: 16, zIndex: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   flyer:      { width: '100%', height: W * 0.65, resizeMode: 'cover' },
   body:       { padding: S.lg, paddingBottom: 40 },
@@ -266,4 +268,4 @@ const md = StyleSheet.create({
   desc:       { color: COLORS.muted, fontSize: 13, lineHeight: 20 },
   soonBadge:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: S.lg, backgroundColor: 'rgba(212,160,23,0.1)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.25)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 6, alignSelf: 'flex-start' },
   soonTx:     { color: COLORS.gold2, fontSize: 12, fontWeight: '600' },
-});
+}));

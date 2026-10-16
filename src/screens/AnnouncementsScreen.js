@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed, themedValue } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useAnnouncements } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState } from '../components/SharedComponents';
 
-const TAG_COLORS = {
-  purple: { bg: 'rgba(168,85,247,0.18)',  text: '#c084fc', dot: '#a855f7', border: 'rgba(168,85,247,0.3)'  },
-  gold:   { bg: 'rgba(212,160,23,0.12)',  text: '#f5cc5c', dot: '#e8b82a', border: 'rgba(212,160,23,0.25)' },
-  amber:  { bg: 'rgba(245,158,11,0.10)',  text: '#f59e0b', dot: '#f59e0b', border: 'rgba(245,158,11,0.3)'  },
-  blue:   { bg: 'rgba(96,165,250,0.10)',  text: '#60a5fa', dot: '#60a5fa', border: 'rgba(96,165,250,0.3)'  },
-  green:  { bg: 'rgba(74,222,128,0.10)',  text: '#4ade80', dot: '#4ade80', border: 'rgba(74,222,128,0.3)'  },
-};
+const TAG_COLORS = themedValue(() => ({
+  purple: { bg: 'rgba(168,85,247,0.18)',  text: COLORS.p300, dot: COLORS.p400, border: 'rgba(168,85,247,0.3)'  },
+  gold:   { bg: 'rgba(212,160,23,0.12)',  text: COLORS.gold3, dot: COLORS.gold2, border: 'rgba(212,160,23,0.25)' },
+  amber:  { bg: 'rgba(245,158,11,0.10)',  text: COLORS.amber, dot: COLORS.amber, border: 'rgba(245,158,11,0.3)'  },
+  blue:   { bg: 'rgba(96,165,250,0.10)',  text: COLORS.blue, dot: COLORS.blue, border: 'rgba(96,165,250,0.3)'  },
+  green:  { bg: 'rgba(74,222,128,0.10)',  text: COLORS.green, dot: COLORS.green, border: 'rgba(74,222,128,0.3)'  },
+}));
 
 function timeAgo(val) {
   if (!val) return '';
@@ -29,6 +30,7 @@ export default function AnnouncementsScreen() {
   return (
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="notifications-outline" size={11} color={COLORS.p300} />
           <Text style={styles.heroBadgeTx}>Notices & Updates</Text>
@@ -70,9 +72,9 @@ export default function AnnouncementsScreen() {
 }
 
 const S = SPACING;
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen: { flex: 1, backgroundColor: COLORS.bg },
-  hero: { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero: { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chipPurple, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipPurpleText },
   heroTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -86,4 +88,4 @@ const styles = StyleSheet.create({
   cardBody: { color: COLORS.muted, fontSize: 12, lineHeight: 19 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: S.sm },
   cardMetaTx: { color: COLORS.dim, fontSize: 10 },
-});
+}));

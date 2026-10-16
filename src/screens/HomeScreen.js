@@ -7,8 +7,9 @@ import {
 import Svg, { Path, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
 import { GlassCard, PulseDot, rgba } from '../components/Glass';
+import { useTheme } from '../constants/ThemeContext';
 import { useWordOfDay, useEvents } from '../hooks/useFirestore';
 import { Loader, SectionLabel } from '../components/SharedComponents';
 
@@ -92,39 +93,57 @@ function WaveStrip({ color, opacity, yPercent, amplitude, speed, delay, blurAmou
 }
 
 // ─── Full-screen wave background ──────────────────────────────────────────────
+const WAVES_DARK = [
+  // Purple waves
+  { color: '#7c3aed', opacity: 0.45, yPercent: 0.08, amplitude: 22, speed: 8000,  delay: 0    },
+  { color: '#6d28d9', opacity: 0.35, yPercent: 0.18, amplitude: 18, speed: 10000, delay: 1200 },
+  { color: '#5b21b6', opacity: 0.30, yPercent: 0.28, amplitude: 25, speed: 7000,  delay: 600  },
+  // Gold waves — more prominent
+  { color: '#d4a017', opacity: 0.50, yPercent: 0.38, amplitude: 20, speed: 9000,  delay: 400  },
+  { color: '#e8b82a', opacity: 0.40, yPercent: 0.48, amplitude: 28, speed: 11000, delay: 2000 },
+  { color: '#f5cc5c', opacity: 0.35, yPercent: 0.55, amplitude: 16, speed: 6500,  delay: 800  },
+  // Deep purple
+  { color: '#4c1d95', opacity: 0.40, yPercent: 0.65, amplitude: 22, speed: 8500,  delay: 1600 },
+  // More gold lower
+  { color: '#d4a017', opacity: 0.45, yPercent: 0.73, amplitude: 18, speed: 7500,  delay: 300  },
+  { color: '#e8b82a', opacity: 0.30, yPercent: 0.82, amplitude: 24, speed: 12000, delay: 900  },
+  // Final purple
+  { color: '#7c3aed', opacity: 0.35, yPercent: 0.90, amplitude: 20, speed: 9500,  delay: 1800 },
+];
+
+// Light theme: the same motion, in soft pastel (lavender · peach · amber · rose)
+const WAVES_LIGHT = [
+  { color: '#a78bfa', opacity: 0.50, yPercent: 0.08, amplitude: 22, speed: 8000,  delay: 0    },
+  { color: '#c4b5fd', opacity: 0.45, yPercent: 0.18, amplitude: 18, speed: 10000, delay: 1200 },
+  { color: '#fb923c', opacity: 0.28, yPercent: 0.28, amplitude: 25, speed: 7000,  delay: 600  },
+  { color: '#fbbf24', opacity: 0.38, yPercent: 0.38, amplitude: 20, speed: 9000,  delay: 400  },
+  { color: '#fcd34d', opacity: 0.34, yPercent: 0.48, amplitude: 28, speed: 11000, delay: 2000 },
+  { color: '#f9a8d4', opacity: 0.34, yPercent: 0.55, amplitude: 16, speed: 6500,  delay: 800  },
+  { color: '#a78bfa', opacity: 0.40, yPercent: 0.65, amplitude: 22, speed: 8500,  delay: 1600 },
+  { color: '#fbbf24', opacity: 0.34, yPercent: 0.73, amplitude: 18, speed: 7500,  delay: 300  },
+  { color: '#fdba74', opacity: 0.30, yPercent: 0.82, amplitude: 24, speed: 12000, delay: 900  },
+  { color: '#c4b5fd', opacity: 0.38, yPercent: 0.90, amplitude: 20, speed: 9500,  delay: 1800 },
+];
+
+// ─── Full-screen wave background ──────────────────────────────────────────────
 function WaveBackground() {
-  const waves = [
-    // Purple waves
-    { color: '#7c3aed', opacity: 0.45, yPercent: 0.08, amplitude: 22, speed: 8000,  delay: 0    },
-    { color: '#6d28d9', opacity: 0.35, yPercent: 0.18, amplitude: 18, speed: 10000, delay: 1200 },
-    { color: '#5b21b6', opacity: 0.30, yPercent: 0.28, amplitude: 25, speed: 7000,  delay: 600  },
-    // Gold waves — more prominent
-    { color: '#d4a017', opacity: 0.50, yPercent: 0.38, amplitude: 20, speed: 9000,  delay: 400  },
-    { color: '#e8b82a', opacity: 0.40, yPercent: 0.48, amplitude: 28, speed: 11000, delay: 2000 },
-    { color: '#f5cc5c', opacity: 0.35, yPercent: 0.55, amplitude: 16, speed: 6500,  delay: 800  },
-    // Deep purple
-    { color: '#4c1d95', opacity: 0.40, yPercent: 0.65, amplitude: 22, speed: 8500,  delay: 1600 },
-    // More gold lower
-    { color: '#d4a017', opacity: 0.45, yPercent: 0.73, amplitude: 18, speed: 7500,  delay: 300  },
-    { color: '#e8b82a', opacity: 0.30, yPercent: 0.82, amplitude: 24, speed: 12000, delay: 900  },
-    // Final purple
-    { color: '#7c3aed', opacity: 0.35, yPercent: 0.90, amplitude: 20, speed: 9500,  delay: 1800 },
-  ];
+  const dark  = COLORS.isDark;
+  const waves = dark ? WAVES_DARK : WAVES_LIGHT;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {/* Dark base */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#07050f' }]} />
+      {/* Base */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: COLORS.bg }]} />
 
       {/* Wave strips */}
       {waves.map((w, i) => (
-        <WaveStrip key={i} {...w} />
+        <WaveStrip key={`${dark ? 'd' : 'l'}${i}`} {...w} />
       ))}
 
       {/* Blur overlay for depth */}
       <BlurView
-        intensity={18}
-        tint="dark"
+        intensity={dark ? 18 : 28}
+        tint={COLORS.blurTint}
         style={StyleSheet.absoluteFill}
       />
     </View>
@@ -143,6 +162,7 @@ function isComingSoon(val) {
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
+  const { isDark, toggleTheme } = useTheme();
   const { word, loading: wLoad } = useWordOfDay();
   const { data: events, loading: eLoad } = useEvents();
 
@@ -162,6 +182,15 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Hero */}
         <View style={styles.hero}>
+          <TouchableOpacity
+            style={styles.themeBtn}
+            onPress={toggleTheme}
+            activeOpacity={0.8}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+          >
+            <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={18} color={COLORS.gold2} />
+          </TouchableOpacity>
           <Image source={GESA_LOGO} style={styles.logo} resizeMode="contain" />
           <View style={styles.heroBadge}>
             <Ionicons name="flash" size={11} color={COLORS.gold3} />
@@ -215,11 +244,11 @@ export default function HomeScreen({ navigation }) {
             >
               <GlassCard tint={item.color} strength={2.4} edge={0.55} radius={16} intensity={22} style={styles.qcard}>
                 <View style={[styles.qicon, { backgroundColor: rgba(item.color, 0.35), borderColor: rgba(item.color, 0.9) }]}>
-                  <Ionicons name={item.icon} size={24} color="#fff" />
+                  <Ionicons name={item.icon} size={24} color={COLORS.isDark ? '#fff' : item.color} />
                 </View>
                 <Text style={styles.qtitle}>{item.label}</Text>
                 <Text style={styles.qsub}>{item.sub}</Text>
-                <Ionicons name="arrow-forward" size={15} color="rgba(255,255,255,0.7)" style={styles.qarrow} />
+                <Ionicons name="arrow-forward" size={15} color={COLORS.onHeroSub} style={styles.qarrow} />
               </GlassCard>
             </TouchableOpacity>
           ))}
@@ -238,7 +267,7 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => navigation.navigate('Events')}
                   activeOpacity={0.75}
                 >
-                  <GlassCard tint="#a855f7" radius={RADIUS.md} intensity={18} edge={0.25} style={styles.evRow}>
+                  <GlassCard tint={COLORS.p400} radius={RADIUS.md} intensity={18} edge={0.25} style={styles.evRow}>
                   <View style={styles.evDate}>
                     <Text style={styles.evDay}>{d.getDate()}</Text>
                     <Text style={styles.evMon}>{d.toLocaleString('en', { month: 'short' }).toUpperCase()}</Text>
@@ -269,21 +298,22 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:       { flex: 1, backgroundColor: 'transparent' },
   hero:         { paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  themeBtn:     { position: 'absolute', top: S.md, right: S.lg, zIndex: 5, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.glassBtnFill, borderWidth: 1, borderColor: COLORS.border2, borderTopColor: COLORS.glassHighlight },
   logo:         { width: 84, height: 84, borderRadius: 42, marginBottom: S.md, borderWidth: 2, borderColor: 'rgba(212,160,23,0.5)', backgroundColor: '#fff' },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
-  heroTitle:    { color: '#fff', fontSize: 20, fontWeight: '800', lineHeight: 27, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
-  heroSub:      { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 5 },
+  heroTitle:    { color: COLORS.onHero, fontSize: 20, fontWeight: '800', lineHeight: 27, textShadowColor: COLORS.textShadow, textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
+  heroSub:      { color: COLORS.isDark ? 'rgba(255,255,255,0.6)' : COLORS.muted, fontSize: 12, marginTop: 5 },
 
   wotd:         { padding: S.lg },
   wotdChip:     { ...GLASS.chip, marginBottom: S.md },
   wotdLbl:      { ...GLASS.chipText },
-  wotdWord:     { color: COLORS.text, fontSize: 24, fontWeight: '800', letterSpacing: 0.4, textShadowColor: 'rgba(232,184,42,0.55)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
+  wotdWord:     { color: COLORS.text, fontSize: 24, fontWeight: '800', letterSpacing: 0.4, textShadowColor: COLORS.textGlow, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
   wotdType:     { color: COLORS.gold2, fontSize: 11, fontStyle: 'italic', marginTop: 2 },
-  wotdDef:      { color: '#c9bfe6', fontSize: 13, lineHeight: 20, marginTop: S.sm },
+  wotdDef:      { color: COLORS.soft, fontSize: 13, lineHeight: 20, marginTop: S.sm },
   wotdEx:       { color: COLORS.muted, fontSize: 12, fontStyle: 'italic', marginTop: S.sm, paddingLeft: S.sm, borderLeftWidth: 2, borderLeftColor: 'rgba(212,160,23,0.28)', lineHeight: 18 },
 
   qrow:         { paddingLeft: S.lg, paddingRight: S.xl, gap: 12 },
@@ -291,8 +321,8 @@ const styles = StyleSheet.create({
   qcard:        { flex: 1, padding: S.lg, justifyContent: 'flex-start' },
   qicon:        { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   qarrow:       { position: 'absolute', right: S.lg, bottom: S.lg },
-  qtitle:       { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: S.md, letterSpacing: 0.2 },
-  qsub:         { color: 'rgba(255,255,255,0.75)', fontSize: 11, marginTop: 3 },
+  qtitle:       { color: COLORS.onHero, fontSize: 14, fontWeight: '700', marginTop: S.md, letterSpacing: 0.2 },
+  qsub:         { color: COLORS.onHeroSub, fontSize: 11, marginTop: 3 },
 
   evWrap:       { marginHorizontal: S.lg, marginBottom: 10 },
   evRow:        { flexDirection: 'row', alignItems: 'center', gap: S.md, padding: S.md },
@@ -309,4 +339,4 @@ const styles = StyleSheet.create({
   footerLogo:   { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(212,160,23,0.3)', backgroundColor: '#fff' },
   footerTitle:  { color: COLORS.gold2, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
   footerSub:    { color: COLORS.dim, fontSize: 10, marginTop: 2 },
-});
+}));

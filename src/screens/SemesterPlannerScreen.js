@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  TextInput, StyleSheet, Alert,
+  TextInput, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 
 const S = SPACING;
 
@@ -18,14 +19,14 @@ function gradeFromMark(m) {
   return 'F';
 }
 function gradeColor(g) {
-  return { A: '#4ade80', B: '#60a5fa', C: COLORS.gold2, D: '#f59e0b', F: '#f87171' }[g] || COLORS.muted;
+  return { A: COLORS.green, B: COLORS.blue, C: COLORS.gold2, D: COLORS.amber, F: COLORS.red }[g] || COLORS.muted;
 }
 function degreeClass(cwa) {
-  if (cwa >= 80) return { label: 'First Class',        color: '#4ade80' };
-  if (cwa >= 70) return { label: 'Second Class Upper', color: '#60a5fa' };
+  if (cwa >= 80) return { label: 'First Class',        color: COLORS.green };
+  if (cwa >= 70) return { label: 'Second Class Upper', color: COLORS.blue };
   if (cwa >= 60) return { label: 'Second Class Lower', color: COLORS.gold2 };
-  if (cwa >= 50) return { label: 'Third Class',        color: '#f59e0b' };
-  return            { label: 'Fail',                  color: '#f87171' };
+  if (cwa >= 50) return { label: 'Third Class',        color: COLORS.amber };
+  return            { label: 'Fail',                  color: COLORS.red };
 }
 
 // ─── Required mark formula ────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ export default function SemesterPlannerScreen() {
     <ScrollView style={styles.screen} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       {/* Hero */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.badge}>
           <Ionicons name="trending-up-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.badgeTx}>Smart Planner</Text>
@@ -146,9 +148,9 @@ export default function SemesterPlannerScreen() {
             const grade    = c.mark !== '' ? gradeFromMark(c.mark) : null;
             const reqColor = req === null ? COLORS.dim
               : req > 100 ? COLORS.red
-              : req >= 80 ? '#4ade80'
+              : req >= 80 ? COLORS.green
               : req >= 60 ? COLORS.gold2
-              : '#f59e0b';
+              : COLORS.amber;
 
             return (
               <View key={i} style={styles.courseRow}>
@@ -182,7 +184,7 @@ export default function SemesterPlannerScreen() {
                     {req > 100
                       ? <Text style={[styles.reqTx, { color: COLORS.red }]}>Target not achievable for this course alone</Text>
                       : req < 0
-                      ? <Text style={[styles.reqTx, { color: '#4ade80' }]}>Any mark will suffice — you're already on track</Text>
+                      ? <Text style={[styles.reqTx, { color: COLORS.green }]}>Any mark will suffice — you're already on track</Text>
                       : <Text style={[styles.reqTx, { color: reqColor }]}>Need at least <Text style={{ fontWeight: '800' }}>{req}%</Text> to reach target CWA</Text>
                     }
                   </View>
@@ -202,7 +204,7 @@ export default function SemesterPlannerScreen() {
             </View>
             {targetCWA && (
               projected >= Number(targetCWA)
-                ? <Text style={[styles.gap, { color: '#4ade80' }]}>✓ On track to meet your target!</Text>
+                ? <Text style={[styles.gap, { color: COLORS.green }]}>✓ On track to meet your target!</Text>
                 : <Text style={styles.gap}>
                     Need {(Number(targetCWA) - projected).toFixed(2)} more CWA points to hit target
                   </Text>
@@ -221,9 +223,9 @@ export default function SemesterPlannerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:       { flex: 1, backgroundColor: COLORS.bg },
-  hero:         { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:         { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   badge:        { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
   badgeTx:      { color: COLORS.gold3, fontSize: 10 },
   heroTitle:    { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -250,10 +252,10 @@ const styles = StyleSheet.create({
   delBtn:       { padding: 4 },
   reqRow:       { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4, paddingLeft: 4 },
   reqTx:        { fontSize: 11 },
-  projCard:     { backgroundColor: '#1e1545', borderWidth: 1, borderColor: 'rgba(212,160,23,0.24)', borderRadius: RADIUS.xl, padding: S.xl, alignItems: 'center', marginBottom: S.lg },
+  projCard:     { backgroundColor: COLORS.cardStrong, borderWidth: 1, borderColor: 'rgba(212,160,23,0.24)', borderRadius: RADIUS.xl, padding: S.xl, alignItems: 'center', marginBottom: S.lg },
   projLbl:      { color: COLORS.muted, fontSize: 10, letterSpacing: 1.5, marginBottom: 4 },
   projVal:      { fontSize: 52, fontWeight: '800', lineHeight: 60 },
   gap:          { color: COLORS.muted, fontSize: 12, textAlign: 'center', marginTop: S.md },
   scaleBox:     { backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: S.md, alignItems: 'center' },
   scaleTx:      { color: COLORS.dim, fontSize: 11 },
-});
+}));

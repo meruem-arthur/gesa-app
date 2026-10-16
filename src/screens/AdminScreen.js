@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Alert, ActivityIndicator, Switch, Image,
+  View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, Switch, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { uploadPhoto, uploadFile } from '../../cloudinary';
 import {
   addExecutive, updateExecutive, deleteExecutive,
@@ -788,6 +788,7 @@ export default function AdminScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
+<HeroMesh />
         <View style={styles.headerBadge}>
           <Ionicons name="shield-checkmark" size={12} color={COLORS.gold2} />
           <Text style={styles.headerBadgeTx}>ADMIN PANEL</Text>
@@ -810,9 +811,9 @@ export default function AdminScreen() {
 }
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:        { flex: 1, backgroundColor: COLORS.bg },
-  header:        { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.lg },
+  header:        { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.lg },
   headerBadge:   { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(212,160,23,0.11)', borderWidth: 1, borderColor: 'rgba(212,160,23,0.28)', borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: S.sm },
   headerBadgeTx: { color: COLORS.gold3, fontSize: 10, fontWeight: '700' },
   headerTitle:   { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -821,8 +822,8 @@ const styles = StyleSheet.create({
   tabChipOn:     { backgroundColor: COLORS.gold2, borderColor: COLORS.gold2 },
   tabChipTx:     { color: COLORS.muted, fontSize: 11 },
   tabChipTxOn:   { color: '#000', fontWeight: '700' },
-});
-const sec = StyleSheet.create({
+}));
+const sec = themed(() => ({
   box:        { backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, marginBottom: S.lg, overflow: 'hidden' },
   form:       { padding: S.md, borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: COLORS.surface },
   formTitle:  { color: COLORS.gold2, fontSize: 11, fontWeight: '700', marginBottom: S.sm, textTransform: 'uppercase', letterSpacing: 1 },
@@ -840,21 +841,21 @@ const sec = StyleSheet.create({
   photoTx:    { color: COLORS.muted, fontSize: 13, flex: 1 },
   photoPreview: { width: 60, height: 60, borderRadius: 30 },
   photoNote:  { color: COLORS.dim, fontSize: 10, marginBottom: S.sm },
-});
-const sh = StyleSheet.create({
+}));
+const sh = themed(() => ({
   row:    { flexDirection: 'row', alignItems: 'center', gap: S.sm, padding: S.md },
   title:  { flex: 1, color: COLORS.text, fontWeight: '700', fontSize: 14 },
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: COLORS.gold2, borderRadius: RADIUS.pill, paddingHorizontal: S.md, paddingVertical: 5 },
   addTx:  { color: '#000', fontSize: 11, fontWeight: '700' },
-});
-const fi = StyleSheet.create({
+}));
+const fi = themed(() => ({
   label: { color: COLORS.muted, fontSize: 11, marginBottom: 4 },
   input: { backgroundColor: COLORS.card2, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.sm, padding: S.md, color: COLORS.text, fontSize: 13 },
-});
-const ir = StyleSheet.create({
+}));
+const ir = themed(() => ({
   row:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.md, paddingVertical: S.sm, borderTopWidth: 1, borderTopColor: COLORS.border, gap: S.sm },
   name:    { color: COLORS.text, fontSize: 12, fontWeight: '600' },
   sub:     { color: COLORS.muted, fontSize: 11, marginTop: 2 },
   editBtn: { padding: S.sm, backgroundColor: 'rgba(232,184,42,0.08)', borderRadius: RADIUS.sm, borderWidth: 1, borderColor: 'rgba(232,184,42,0.2)' },
   delBtn:  { padding: S.sm, backgroundColor: 'rgba(248,113,113,0.08)', borderRadius: RADIUS.sm, borderWidth: 1, borderColor: 'rgba(248,113,113,0.2)' },
-});
+}));

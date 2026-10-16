@@ -1,9 +1,10 @@
 import React from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet, Image,
+  View, Text, ScrollView, TouchableOpacity, Linking, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useExecutives, useSiteContent } from '../hooks/useFirestore';
 import { Loader, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 
@@ -78,6 +79,7 @@ export default function TalkToSomeoneScreen() {
       <OfflineBanner visible={exec.offline} savedAt={exec.savedAt} />
 
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="heart-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>Student welfare</Text>
@@ -147,9 +149,9 @@ export default function TalkToSomeoneScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:       { flex: 1, backgroundColor: COLORS.bg },
-  hero:         { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:         { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:    { color: COLORS.text, fontSize: 20, fontWeight: '700' },
@@ -183,4 +185,4 @@ const styles = StyleSheet.create({
   quote:        { borderLeftWidth: 2, borderLeftColor: COLORS.gold, paddingLeft: S.md, marginTop: S.md },
   quoteTitle:   { color: COLORS.text, fontSize: 14, fontWeight: '700', marginBottom: 4 },
   quoteTx:      { color: COLORS.muted, fontSize: 13, lineHeight: 20 },
-});
+}));

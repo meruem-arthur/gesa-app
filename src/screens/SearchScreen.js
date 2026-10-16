@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  TextInput, StyleSheet, ActivityIndicator,
+  TextInput, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { COLORS, RADIUS, SPACING } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, themed, themedValue } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 
 const S = SPACING;
 const CATEGORIES = ['All', 'Materials', 'Past Q', 'Lecturers', 'Announcements'];
@@ -33,12 +34,12 @@ function matches(item, q) {
     .filter(Boolean).some(f => f.toLowerCase().includes(lower));
 }
 
-const TYPE_META = {
+const TYPE_META = themedValue(() => ({
   'Materials':     { icon: 'document-text-outline', color: COLORS.gold2  },
   'Past Q':        { icon: 'reader-outline',         color: COLORS.p300   },
-  'Lecturers':     { icon: 'person-outline',         color: '#4ade80'     },
-  'Announcements': { icon: 'megaphone-outline',      color: '#60a5fa'     },
-};
+  'Lecturers':     { icon: 'person-outline',         color: COLORS.green },
+  'Announcements': { icon: 'megaphone-outline',      color: COLORS.blue },
+}));
 
 function ResultCard({ item }) {
   const { icon, color } = TYPE_META[item._type] || {};
@@ -93,6 +94,7 @@ export default function SearchScreen() {
     <View style={styles.screen}>
       {/* Search bar */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.bar}>
           <Ionicons name="search-outline" size={18} color={COLORS.muted} />
           <TextInput
@@ -154,9 +156,9 @@ export default function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:   { flex: 1, backgroundColor: COLORS.bg },
-  hero:     { backgroundColor: '#1c1048', paddingHorizontal: S.lg, paddingTop: S.xl, paddingBottom: S.lg },
+  hero:     { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.lg, paddingTop: S.xl, paddingBottom: S.lg },
   bar:      { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: COLORS.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: S.md, paddingVertical: S.sm },
   barInput: { flex: 1, color: COLORS.text, fontSize: 14 },
   catBar:   { maxHeight: 48, borderBottomWidth: 1, borderBottomColor: COLORS.border },
@@ -165,13 +167,13 @@ const styles = StyleSheet.create({
   catTx:    { color: COLORS.muted, fontSize: 12 },
   catTxOn:  { color: '#000', fontWeight: '700' },
   hint:     { color: COLORS.dim, fontSize: 13, textAlign: 'center', marginTop: 40 },
-});
+}));
 
-const rc = StyleSheet.create({
+const rc = themed(() => ({
   card:    { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, marginBottom: 8, padding: S.md },
   icon:    { width: 36, height: 36, borderRadius: RADIUS.sm, alignItems: 'center', justifyContent: 'center' },
   title:   { color: COLORS.text, fontSize: 13, fontWeight: '600' },
   sub:     { color: COLORS.muted, fontSize: 11, marginTop: 2 },
   badge:   { paddingHorizontal: S.sm, paddingVertical: 3, borderRadius: RADIUS.pill },
   badgeTx: { fontSize: 9, fontWeight: '700' },
-});
+}));

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, GLASS } from '../constants/theme';
+import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
+import HeroMesh from '../components/HeroMesh';
 import { useTimetable } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState, PillRow, TabRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
 
@@ -144,6 +145,7 @@ export default function TimetableScreen() {
     >
       {/* Hero */}
       <View style={styles.hero}>
+<HeroMesh />
         <View style={styles.heroBadge}>
           <Ionicons name="calendar-outline" size={11} color={COLORS.gold3} />
           <Text style={styles.heroBadgeTx}>GM · SRID Campus</Text>
@@ -196,9 +198,9 @@ export default function TimetableScreen() {
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   screen:       { flex: 1, backgroundColor: COLORS.bg },
-  hero:         { backgroundColor: '#1c1048', paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
+  hero:         { backgroundColor: COLORS.hero, ...COLORS.heroShape, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: S.xxl },
   heroBadge:    { ...GLASS.chip, marginBottom: S.sm },
   heroBadgeTx:  { ...GLASS.chipText },
   heroTitle:    { color: COLORS.text, fontSize: 18, fontWeight: '700' },
@@ -208,16 +210,16 @@ const styles = StyleSheet.create({
   summaryNum:   { color: COLORS.gold2, fontSize: 20, fontWeight: '800' },
   summaryLbl:   { color: COLORS.muted, fontSize: 10, marginTop: 2 },
   summaryDivider: { width: 1, backgroundColor: COLORS.border },
-});
+}));
 
-const ds = StyleSheet.create({
+const ds = themed(() => ({
   container: { marginBottom: S.lg },
   header:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 3, paddingLeft: S.sm, marginBottom: S.sm, marginTop: S.md },
   dayText:   { fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
   count:     { fontSize: 11, color: COLORS.dim },
-});
+}));
 
-const cc = StyleSheet.create({
+const cc = themed(() => ({
   card:      { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, borderLeftWidth: 3, padding: S.md, marginBottom: 8 },
   top:       { flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.sm },
   timeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: RADIUS.pill, paddingHorizontal: S.sm, paddingVertical: 3 },
@@ -231,4 +233,4 @@ const cc = StyleSheet.create({
   venue:     { color: COLORS.muted, fontSize: 11 },
   lecRow:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
   lec:       { color: COLORS.dim, fontSize: 11 },
-});
+}));
