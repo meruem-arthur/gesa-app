@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
 import HeroMesh from '../components/HeroMesh';
+import ImageViewer from '../components/ImageViewer';
 import { useExecutives, useLecturers } from '../hooks/useFirestore';
 import { Loader, ErrorState, EmptyState, GoldBadge, PurpleBadge } from '../components/SharedComponents';
 
@@ -16,7 +17,7 @@ const AVATAR_COLORS = [
 ];
 
 // ─── Smart avatar — shows photo if available, initials otherwise ───────────────
-function PersonAvatar({ photoUrl, name, bgColor, size = 43 }) {
+function PersonAvatar({ photoUrl, name, bgColor, size = 43, onPress }) {
   const [imgError, setImgError] = useState(false);
 
   const initials = (name || '')
@@ -27,7 +28,7 @@ function PersonAvatar({ photoUrl, name, bgColor, size = 43 }) {
     .join('');
 
   if (photoUrl && !imgError) {
-    return (
+    const img = (
       <Image
         source={{ uri: photoUrl }}
         style={{
@@ -40,6 +41,17 @@ function PersonAvatar({ photoUrl, name, bgColor, size = 43 }) {
         onError={() => setImgError(true)}
       />
     );
+    // tap the photo to view it full screen
+    return onPress ? (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.8}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityLabel={`View photo of ${name}`}
+      >
+        {img}
+      </TouchableOpacity>
+    ) : img;
   }
 
   return (
@@ -60,6 +72,7 @@ const av = themed(() => ({
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function LeadersScreen() {
   const [tab, setTab] = useState('exec');
+  const [photo, setPhoto] = useState(null);   // { uri, title, subtitle } while a photo is open
   const { data: execs,    loading: eLoad, error: eErr } = useExecutives();
   const { data: lecturers, loading: lLoad, error: lErr } = useLecturers();
 
@@ -107,6 +120,7 @@ export default function LeadersScreen() {
                 photoUrl={ex.photoUrl}
                 name={ex.name}
                 bgColor={AVATAR_COLORS[i % AVATAR_COLORS.length]}
+                onPress={() => setPhoto({ uri: ex.photoUrl, title: ex.name, subtitle: ex.position })}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.lname}>{ex.name}</Text>
@@ -137,6 +151,7 @@ export default function LeadersScreen() {
                 photoUrl={lec.photoUrl}
                 name={lec.name}
                 bgColor={lec.pinnedRole ? '#92400e' : AVATAR_COLORS[i % AVATAR_COLORS.length]}
+                onPress={() => setPhoto({ uri: lec.photoUrl, title: lec.name, subtitle: [lec.title, lec.major].filter(Boolean).join(' · ') })}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.lname}>{lec.name}</Text>
@@ -157,6 +172,14 @@ export default function LeadersScreen() {
       )}
 
       <View style={{ height: 32 }} />
+
+      <ImageViewer
+        visible={!!photo}
+        uri={photo?.uri}
+        title={photo?.title}
+        subtitle={photo?.subtitle}
+        onClose={() => setPhoto(null)}
+      />
     </ScrollView>
   );
 }
