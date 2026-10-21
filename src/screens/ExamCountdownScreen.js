@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING, themed, themedValue } from '../constants/theme';
 import HeroMesh from '../components/HeroMesh';
 import { Loader, ErrorState, EmptyState, PillRow, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
-import { useExamsTimetable, useExams } from '../hooks/useFirestore';
+import { useExamsTimetable, useExams, useMemeOfTheDay } from '../hooks/useFirestore';
 
 const S = SPACING;
 
@@ -27,6 +27,33 @@ const LEVELS = [
 ];
 
 const SESSION_COLOR = themedValue(() => ({ Morning: COLORS.green, Afternoon: COLORS.amber, Evening: COLORS.purple }));
+
+const FALLBACK_MEME = require('../../assets/exam-meme.jpg');
+
+// Cloudinary can resize on the fly; the memes are shown at ~260pt wide, so a
+// 700px copy keeps them sharp on any phone without downloading the full upload.
+function sizedUrl(url) {
+  return url.includes('/image/upload/')
+    ? url.replace('/image/upload/', '/image/upload/q_auto,w_700/')
+    : url;
+}
+
+// Today's meme from the admin dashboard. Falls back to the bundled image when
+// nothing has been uploaded yet, or when the uploaded one can't be loaded
+// (e.g. offline and not cached by the image layer).
+function MemeImage({ meme }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [meme?.id]);
+  const source = meme?.imageUrl && !failed ? { uri: sizedUrl(meme.imageUrl) } : FALLBACK_MEME;
+  return (
+    <Image
+      source={source}
+      style={styles.memeImage}
+      resizeMode="contain"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 function ExamSlotCard({ slot }) {
   const color = SESSION_COLOR[slot.sessionLabel] || COLORS.purple;
@@ -113,6 +140,7 @@ export default function ExamCountdownScreen() {
   // Both lists are cached, so the countdown and exams timetable open offline.
   const examsQ = useExams();
   const ttQ    = useExamsTimetable(level);
+  const memeQ  = useMemeOfTheDay();
   const exams    = examsQ.data;
   const loading  = examsQ.loading;
   const error    = examsQ.error;
@@ -121,7 +149,7 @@ export default function ExamCountdownScreen() {
   const offline   = examsQ.offline || ttQ.offline;
   const savedAt   = examsQ.savedAt || ttQ.savedAt;
   const refreshing = examsQ.refreshing || ttQ.refreshing;
-  const refresh    = () => Promise.all([examsQ.refresh(), ttQ.refresh()]);
+  const refresh    = () => Promise.all([examsQ.refresh(), ttQ.refresh(), memeQ.refresh()]);
 
   // Find the next / active exam period
   const nextExam = exams.find(e => toDate(e.startDate) >= now)
@@ -173,11 +201,9 @@ export default function ExamCountdownScreen() {
         <>
           {/* ── 2. Meme of the day ── */}
           <View style={styles.illustrationWrap}>
-            <Image
-              source={require('../../assets/exam-meme.jpg')}
-              style={styles.memeImage}
-              resizeMode="contain"
-            />
+            {memeQ.loading
+              ? <View style={styles.memeImage} />
+              : <MemeImage meme={memeQ.meme} />}
           </View>
 
           {hasExams && nextExam ? (

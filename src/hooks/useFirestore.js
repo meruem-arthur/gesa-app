@@ -36,6 +36,40 @@ export function useWordOfDay() {
   return { word: data, ...rest };
 }
 
+// ─── Meme of the day (exam countdown screen) ──────────────────────────────────
+// memes: { imageUrl, reserved, createdAt } managed in the admin dashboard.
+//   • not reserved → part of the daily rotation: one per day, cycling in upload order
+//   • reserved     → never rotates; shows only while the admin has pinned it
+// The pin is `pinnedMemeId` on siteContent/home ('' = rotation).
+// Keep pickMemeOfTheDay identical to the copy in the admin app's useFirestore.js.
+// The day number is UTC-based so every phone shows the same meme on the same day.
+export function pickMemeOfTheDay(memes, pinnedId, now = Date.now()) {
+  if (!memes.length) return null;
+  if (pinnedId) {
+    const pinned = memes.find(m => m.id === pinnedId);
+    if (pinned) return pinned;
+  }
+  const pool = memes.filter(m => !m.reserved);
+  if (!pool.length) return null;
+  return pool[Math.floor(now / 86400000) % pool.length];
+}
+
+// Returns { meme, loading, refresh, offline }. `meme` is null when there's nothing
+// to show (no memes uploaded, or offline with nothing saved) so the screen can fall
+// back to its bundled image. Both reads are cached, so this works offline too.
+export function useMemeOfTheDay() {
+  const memesQ = useCachedQuery('memes', () =>
+    fetchDocs(query(collection(db, 'memes'), orderBy('createdAt', 'asc'))));
+  const siteQ = useSiteContent();
+  const meme = pickMemeOfTheDay(memesQ.data, siteQ.data?.pinnedMemeId || '');
+  return {
+    meme,
+    loading: memesQ.loading || siteQ.loading,
+    offline: memesQ.offline || siteQ.offline,
+    refresh: () => Promise.all([memesQ.refresh(), siteQ.refresh()]),
+  };
+}
+
 export function useEvents() {
   return useCachedQuery('events', () =>
     fetchDocs(query(collection(db, 'events'), orderBy('date', 'asc'))));
