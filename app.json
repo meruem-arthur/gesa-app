@@ -4,7 +4,7 @@
     "slug": "gesa-umat",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/gesa-logo.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/gesa-logo.png",
@@ -13,18 +13,21 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gesa.umat"
+      "bundleIdentifier": "com.gesa.umat",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/gesa-logo-adaptive.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#07050f"
       },
       "package": "com.gesa.umat",
       "googleServicesFile": "./google-services.json",
-      "permissions": [
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "plugins": [
@@ -32,6 +35,14 @@
         "expo-notifications",
         {
           "color": "#7c3aed"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GESA UMaT needs access to your photos so admins can upload pictures.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       "expo-web-browser",

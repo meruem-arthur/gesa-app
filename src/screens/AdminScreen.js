@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, Switch, Image,
+  View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, Switch, Image, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -122,8 +122,11 @@ function ExecutivesSection() {
   function openEdit(ex) { setEditTarget(ex); setForm({ name: ex.name, position: ex.position, order: String(ex.order || '') }); setPhotoUri(null); setShowForm(true); }
 
   async function pickPhoto() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+    // Android uses the system photo picker, which needs no storage permission.
+    if (Platform.OS === 'ios') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+    }
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (!r.canceled) setPhotoUri(r.assets[0].uri);
   }
@@ -196,8 +199,11 @@ function LecturersSection() {
   function openEdit(l) { setEditTarget(l); setForm({ name: l.name, title: l.title || '', major: l.major || '', phone: l.phone || '', email: l.email || '', isPinned: l.isPinned || false }); setPhotoUri(null); setShowForm(true); }
 
   async function pickPhoto() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+    // Android uses the system photo picker, which needs no storage permission.
+    if (Platform.OS === 'ios') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+    }
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (!r.canceled) setPhotoUri(r.assets[0].uri);
   }
