@@ -298,6 +298,20 @@ export async function addReport(message) {
   });
 }
 
+// A student flagged a forum post or reply. Lands in the same `reports` collection
+// (and the same dashboard page) as bug reports, tagged so admins can tell them apart.
+export async function addForumReport({ postId, replyId, excerpt }) {
+  const kind = replyId ? 'reply' : 'post';
+  return addDoc(collection(db, 'reports'), {
+    message: `Forum ${kind} reported: \u201c${String(excerpt || '').trim().slice(0, 160)}\u201d`,
+    source: 'forum',
+    postId,
+    replyId: replyId || null,
+    status: 'open',
+    createdAt: Timestamp.now(),
+  });
+}
+
 // ─── PUSH NOTIFICATIONS ───────────────────────────────────────────────────────
 export async function saveExpoPushToken(token) {
   if (!token) return;

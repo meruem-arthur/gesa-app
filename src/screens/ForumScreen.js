@@ -4,11 +4,13 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getDocs, addDoc, collection, query,
   orderBy, Timestamp, doc, updateDoc, increment,
 } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { addForumReport } from '../hooks/useFirestore';
 import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
 import HeroMesh from '../components/HeroMesh';
 
@@ -25,10 +27,57 @@ function timeAgo(val) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+// ─── Report / hide ────────────────────────────────────────────────────────────
+// The forum is anonymous, so there are no accounts to block. Instead a student can
+// report any post or reply to the admins (who review it in the dashboard) and hide
+// it on their own phone straight away. Hidden items are remembered across restarts.
+const HIDDEN_KEY = 'gesa_forum_hidden';
+
+function useHiddenContent() {
+  const [hidden, setHidden] = useState({});
+  useEffect(() => {
+    AsyncStorage.getItem(HIDDEN_KEY)
+      .then(raw => { if (raw) setHidden(JSON.parse(raw)); })
+      .catch(() => {});
+  }, []);
+  const hide = useCallback((key) => {
+    setHidden(prev => {
+      const next = { ...prev, [key]: true };
+      AsyncStorage.setItem(HIDDEN_KEY, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
+  }, []);
+  return [hidden, hide];
+}
+
+function openReportMenu({ postId, replyId, excerpt, onHide }) {
+  Alert.alert(
+    replyId ? 'Reply options' : 'Post options',
+    'Report anything abusive, hateful, harassing or spam. Admins review every report.',
+    [
+      {
+        text: 'Report to admins',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await addForumReport({ postId, replyId, excerpt });
+            onHide();
+            Alert.alert('Thanks', 'Reported. The admins will review it, and it is now hidden for you.');
+          } catch {
+            Alert.alert('Could not send the report', 'Check your connection and try again.');
+          }
+        },
+      },
+      { text: 'Hide for me', onPress: onHide },
+      { text: 'Cancel', style: 'cancel' },
+    ],
+  );
+}
+
 const TAGS = ['General', 'Level 100', 'Level 200', 'Level 300', 'Level 400', 'Exams', 'Social'];
 
 // ─── Replies thread ───────────────────────────────────────────────────────────
-function ReplyThread({ postId, replyCount: initialCount }) {
+function ReplyThread({ postId, replyCount: initialCount, hidden, onHide }) {
   const [replies,    setReplies]    = useState([]);
   const [count,      setCount]      = useState(initialCount || 0);
   const [expanded,   setExpanded]   = useState(false);
@@ -80,13 +129,23 @@ function ReplyThread({ postId, replyCount: initialCount }) {
       {expanded && (
         <View style={rp.thread}>
           {loading && <ActivityIndicator color={COLORS.gold2} style={{ margin: S.sm }} />}
-          {replies.map(r => (
+          {replies.filter(r => !hidden[`${postId}/${r.id}`]).map(r => (
             <View key={r.id} style={rp.reply}>
               <View style={rp.avatar}><Ionicons name="person-outline" size={11} color={COLORS.dim} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={rp.body}>{r.body}</Text>
                 <Text style={rp.time}>{timeAgo(r.createdAt)}</Text>
               </View>
+              <TouchableOpacity
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Report or hide this reply"
+                onPress={() => openReportMenu({
+                  postId, replyId: r.id, excerpt: r.body,
+                  onHide: () => onHide(`${postId}/${r.id}`),
+                })}
+              >
+                <Ionicons name="flag-outline" size={13} color={COLORS.dim} />
+              </TouchableOpacity>
             </View>
           ))}
           <View style={rp.inputRow}>
@@ -111,7 +170,7 @@ function ReplyThread({ postId, replyCount: initialCount }) {
 }
 
 // ─── Single post card ─────────────────────────────────────────────────────────
-function PostCard({ post, onLike }) {
+function PostCard({ post, onLike, hidden, onHide }) {
   return (
     <View style={pc.card}>
       <View style={pc.top}>
@@ -123,6 +182,16 @@ function PostCard({ post, onLike }) {
         <View style={[pc.tagBadge, { backgroundColor: COLORS.p400 + '22' }]}>
           <Text style={[pc.tagTx, { color: COLORS.p300 }]}>{post.tag}</Text>
         </View>
+        <TouchableOpacity
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityLabel="Report or hide this post"
+          onPress={() => openReportMenu({
+            postId: post.id, excerpt: post.title,
+            onHide: () => onHide(post.id),
+          })}
+        >
+          <Ionicons name="flag-outline" size={15} color={COLORS.dim} />
+        </TouchableOpacity>
       </View>
       <Text style={pc.title}>{post.title}</Text>
       {!!post.body && <Text style={pc.body}>{post.body}</Text>}
@@ -132,7 +201,7 @@ function PostCard({ post, onLike }) {
           <Text style={pc.likeTx}>{post.likes || 0}</Text>
         </TouchableOpacity>
       </View>
-      <ReplyThread postId={post.id} replyCount={post.replyCount || 0} />
+      <ReplyThread postId={post.id} replyCount={post.replyCount || 0} hidden={hidden} onHide={onHide} />
     </View>
   );
 }
@@ -200,6 +269,7 @@ export default function ForumScreen() {
   const [loading,   setLoading]   = useState(true);
   const [showForm,  setShowForm]  = useState(false);
   const [activeTag, setActiveTag] = useState('All');
+  const [hidden,    hide]         = useHiddenContent();
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -212,11 +282,16 @@ export default function ForumScreen() {
   useEffect(() => { loadPosts(); }, []);
 
   async function handleLike(postId) {
-    await updateDoc(doc(db, 'forum', postId), { likes: increment(1) });
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1 } : p));
+    try {
+      await updateDoc(doc(db, 'forum', postId), { likes: increment(1) });
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1 } : p));
+    } catch {
+      Alert.alert('Could not save your like', 'Check your connection and try again.');
+    }
   }
 
-  const filtered = activeTag === 'All' ? posts : posts.filter(p => p.tag === activeTag);
+  const visible  = posts.filter(p => !hidden[p.id]);
+  const filtered = activeTag === 'All' ? visible : visible.filter(p => p.tag === activeTag);
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -230,6 +305,15 @@ export default function ForumScreen() {
           </View>
           <Text style={styles.heroTitle}>Forum & Q&A</Text>
           <Text style={styles.heroSub}>Ask questions, share ideas, help each other</Text>
+        </View>
+
+        {/* Community rules */}
+        <View style={styles.rules}>
+          <Ionicons name="shield-checkmark-outline" size={14} color={COLORS.p300} style={{ marginTop: 1 }} />
+          <Text style={styles.rulesTx}>
+            Be respectful. No harassment, hate or spam. Tap the flag on any post or reply to report it
+            to the admins, or hide it for yourself.
+          </Text>
         </View>
 
         {/* New post button */}
@@ -268,7 +352,7 @@ export default function ForumScreen() {
             <Text style={styles.empty}>No posts yet — be the first to ask!</Text>
           )}
           {filtered.map(post => (
-            <PostCard key={post.id} post={post} onLike={handleLike} />
+            <PostCard key={post.id} post={post} onLike={handleLike} hidden={hidden} onHide={hide} />
           ))}
         </View>
       </ScrollView>
@@ -291,6 +375,8 @@ const styles = themed(() => ({
   tagTx:       { color: COLORS.muted, fontSize: 11 },
   tagTxOn:     { color: '#fff', fontWeight: '700' },
   empty:       { color: COLORS.dim, fontSize: 13, textAlign: 'center', marginTop: 32 },
+  rules:       { flexDirection: 'row', gap: S.sm, marginHorizontal: S.lg, marginTop: S.lg, padding: S.md, borderRadius: RADIUS.md, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
+  rulesTx:     { flex: 1, color: COLORS.muted, fontSize: 11, lineHeight: 16 },
 }));
 
 const pc = themed(() => ({

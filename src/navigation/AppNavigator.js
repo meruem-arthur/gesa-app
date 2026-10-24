@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback,
-  ScrollView, Modal, TextInput, Alert, Animated, Dimensions, Image,
+  ScrollView, Modal, Animated, Dimensions, Image,
 } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -25,7 +25,6 @@ import TimetableScreen       from '../screens/TimetableScreen';
 import ReportScreen          from '../screens/ReportScreen';
 import SoftwareScreen        from '../screens/SoftwareScreen';
 import TutorialsScreen       from '../screens/TutorialsScreen';
-import AdminScreen           from '../screens/AdminScreen';
 import TalkToSomeoneScreen   from '../screens/TalkToSomeoneScreen';
 import BusinessHubScreen     from '../screens/BusinessHubScreen';
 
@@ -33,8 +32,6 @@ const Stack  = createStackNavigator();
 const S      = SPACING;
 const SCREEN = Dimensions.get('window');
 const SIDEBAR_WIDTH = Math.min(SCREEN.width * 0.78, 300);
-
-const ADMIN_PASSWORD = 'Bond442@love1';
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 const MAIN_TABS = [
@@ -59,60 +56,6 @@ const SIDEBAR_ITEMS = [
   { name: 'Welfare',  label: 'Talk to Someone', icon: 'heart-outline',     iconOn: 'heart',         component: TalkToSomeoneScreen   },
   { name: 'Report',   label: 'Report',   icon: 'flag-outline',          iconOn: 'flag',          component: ReportScreen          },
 ];
-
-const ADMIN_ITEM = {
-  name: 'Admin', label: 'Admin',
-  icon: 'shield-checkmark-outline', iconOn: 'shield-checkmark',
-  component: AdminScreen,
-};
-
-// ─── Secret admin unlock hook ─────────────────────────────────────────────────
-function useAdminUnlock(onUnlocked) {
-  const taps  = useRef(0);
-  const timer = useRef(null);
-  return function handleTap() {
-    taps.current += 1;
-    if (timer.current) clearTimeout(timer.current);
-    if (taps.current >= 5) { taps.current = 0; onUnlocked(); }
-    else timer.current = setTimeout(() => { taps.current = 0; }, 2000);
-  };
-}
-
-// ─── Admin password modal ─────────────────────────────────────────────────────
-function AdminPasswordModal({ visible, onCancel, onSuccess }) {
-  const [pwd, setPwd] = useState('');
-  const [err, setErr] = useState('');
-
-  function handleSubmit() {
-    if (pwd === ADMIN_PASSWORD) { setPwd(''); setErr(''); onSuccess(); }
-    else setErr('Incorrect password.');
-  }
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View style={ms.overlay}>
-        <View style={ms.box}>
-          <Ionicons name="shield-checkmark" size={28} color={COLORS.gold2} style={{ alignSelf: 'center', marginBottom: 12 }} />
-          <Text style={ms.title}>Admin Access</Text>
-          <Text style={ms.sub}>Enter the admin password to unlock the control panel.</Text>
-          <TextInput
-            style={ms.input} placeholder="Password" placeholderTextColor={COLORS.dim}
-            secureTextEntry value={pwd} onChangeText={t => { setPwd(t); setErr(''); }}
-          />
-          {!!err && <Text style={ms.err}>{err}</Text>}
-          <View style={ms.btns}>
-            <TouchableOpacity style={ms.cancelBtn} onPress={() => { setPwd(''); setErr(''); onCancel(); }}>
-              <Text style={ms.cancelTx}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={ms.confirmBtn} onPress={handleSubmit}>
-              <Text style={ms.confirmTx}>Unlock</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
 
 // ─── Light / Dark switch ──────────────────────────────────────────────────────
 function ThemeSwitch() {
@@ -254,7 +197,7 @@ function Sidebar({ visible, activeTab, onClose, onNavigate, sidebarItems }) {
 }
 
 // ─── Custom tab bar ───────────────────────────────────────────────────────────
-function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress, onHomeTap }) {
+function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress }) {
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -268,15 +211,11 @@ function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress, onHomeTap }) {
       <View style={tb.row}>
         {tabs.map(tab => {
           const isActive = activeTab === tab.name;
-          const isHome   = tab.name === 'Home';
           return (
             <TouchableOpacity
               key={tab.name}
               style={[tb.tab, isActive && tb.tabActive]}
-              onPress={() => {
-                if (isHome) onHomeTap?.();
-                onTabPress(tab.name);
-              }}
+              onPress={() => onTabPress(tab.name)}
               activeOpacity={0.75}
             >
               {isActive && <View style={tb.activeDot} />}
@@ -301,7 +240,7 @@ function BottomTabBar({ tabs, activeTab, onTabPress, onMorePress, onHomeTap }) {
 }
 
 // ─── Main app layout ──────────────────────────────────────────────────────────
-function AppLayout({ adminUnlocked, onAdminTap }) {
+function AppLayout() {
   // Android draws edge-to-edge (Expo SDK 54), so the system bars overlap our content.
   // The top inset is applied ONCE here, for every screen. Screens must not add their own.
   // The bottom inset is handled by BottomTabBar (it is the bottom-most element).
@@ -312,7 +251,7 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
   const [activeTab,    setActiveTab]    = useState('Home');
   const [sidebarOpen,  setSidebarOpen]  = useState(false);
 
-  const sidebarItems = adminUnlocked ? [...SIDEBAR_ITEMS, ADMIN_ITEM] : SIDEBAR_ITEMS;
+  const sidebarItems = SIDEBAR_ITEMS;
 
   // All navigable screens = main tabs + sidebar items
   const allScreens = [...MAIN_TABS, ...sidebarItems];
@@ -339,7 +278,6 @@ function AppLayout({ adminUnlocked, onAdminTap }) {
         activeTab={activeTab}
         onTabPress={setActiveTab}
         onMorePress={() => setSidebarOpen(true)}
-        onHomeTap={onAdminTap}
       />
 
       <Sidebar
@@ -361,30 +299,11 @@ export default function AppNavigator() {
     dark: isDark,
     colors: { ...DefaultTheme.colors, background: COLORS.bg, card: COLORS.bg, text: COLORS.text, border: COLORS.border, primary: COLORS.gold2 },
   }), [isDark]);
-  const [adminUnlocked, setAdminUnlocked] = useState(false);
-  const [pwdVisible,    setPwdVisible]    = useState(false);
-
-  const handleSecretTap = useAdminUnlock(() => setPwdVisible(true));
-
   return (
     <NavigationContainer theme={navTheme}>
-      <AdminPasswordModal
-        visible={pwdVisible}
-        onCancel={() => setPwdVisible(false)}
-        onSuccess={() => {
-          setPwdVisible(false);
-          setAdminUnlocked(true);
-          Alert.alert('🔓 Admin unlocked', 'Admin is now available in the sidebar under "More".');
-        }}
-      />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Root">
-          {() => (
-            <AppLayout
-              adminUnlocked={adminUnlocked}
-              onAdminTap={handleSecretTap}
-            />
-          )}
+          {() => <AppLayout />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
@@ -430,18 +349,4 @@ const sw = themed(() => ({
   optOn: { backgroundColor: 'rgba(232,184,42,0.14)', borderColor: 'rgba(245,204,92,0.5)' },
   tx:    { color: COLORS.muted, fontSize: 12, fontWeight: '600', letterSpacing: 0.3 },
   txOn:  { color: COLORS.gold3, fontWeight: '700' },
-}));
-
-const ms = themed(() => ({
-  overlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  box:        { backgroundColor: COLORS.card, borderRadius: 16, padding: 24, width: '100%', borderWidth: 1, borderColor: COLORS.border },
-  title:      { color: COLORS.text, fontSize: 16, fontWeight: '700', marginBottom: 6, textAlign: 'center' },
-  sub:        { color: COLORS.muted, fontSize: 12, marginBottom: 16, textAlign: 'center' },
-  input:      { backgroundColor: COLORS.bg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, padding: 12, color: COLORS.text, fontSize: 14, marginBottom: 6 },
-  err:        { color: COLORS.red, fontSize: 12, marginBottom: 6 },
-  btns:       { flexDirection: 'row', gap: 12, marginTop: 8 },
-  cancelBtn:  { flex: 1, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center' },
-  cancelTx:   { color: COLORS.muted, fontSize: 13 },
-  confirmBtn: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: COLORS.gold2, alignItems: 'center' },
-  confirmTx:  { color: '#000', fontSize: 13, fontWeight: '700' },
 }));
