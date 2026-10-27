@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useId } from 'react';
 import {
   View, Text, TouchableOpacity, Animated, Easing, StyleSheet, Platform,
 } from 'react-native';
@@ -15,20 +15,50 @@ export function rgba(hex, a) {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
 
+// Android quirk: a react-native-svg element sized "100%" can be measured before its parent
+// has its final size and then never grow, leaving the colour covering only the top-left.
+// SvgFill measures the parent itself (onLayout) and draws at exact pixel size, so the
+// colour always covers the whole surface. render(w, h) returns the <Defs>/<Rect> children.
+export function SvgFill({ render, style }) {
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const onLayout = e => {
+    const { width, height } = e.nativeEvent.layout;
+    setBox(p => (Math.abs(p.w - width) < 0.5 && Math.abs(p.h - height) < 0.5 ? p : { w: width, h: height }));
+  };
+  return (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, style]} onLayout={onLayout}>
+      {box.w > 0 && box.h > 0 && (
+        <Svg width={box.w} height={box.h} viewBox={`0 0 ${box.w} ${box.h}`}>
+          {render(box.w, box.h)}
+        </Svg>
+      )}
+    </View>
+  );
+}
+
+// Unique, url()-safe gradient id (a shared id lets one gradient hijack another).
+function useGradId(prefix) {
+  return `${prefix}-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+}
+
 // Diagonal "light catching glass" sheen: bright white corner → tint → tint.
 function Sheen({ tint, strength }) {
-  const id = `sheen-${COLORS.isDark ? 'd' : 'l'}-${String(tint).replace('#', '')}-${Math.round(strength * 100)}`;
+  const id = useGradId('sheen');
   return (
-    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
-      <Defs>
-        <LinearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0"    stopColor="#ffffff" stopOpacity={Math.min(0.6, COLORS.glassSheenTop * strength)} />
-          <Stop offset="0.45" stopColor={tint}    stopOpacity={Math.min(0.5, 0.07 * strength)} />
-          <Stop offset="1"    stopColor={tint}    stopOpacity={Math.min(0.6, 0.14 * strength)} />
-        </LinearGradient>
-      </Defs>
-      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
-    </Svg>
+    <SvgFill
+      render={(w, h) => (
+        <>
+          <Defs>
+            <LinearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0"    stopColor="#ffffff" stopOpacity={Math.min(0.6, COLORS.glassSheenTop * strength)} />
+              <Stop offset="0.45" stopColor={tint}    stopOpacity={Math.min(0.5, 0.07 * strength)} />
+              <Stop offset="1"    stopColor={tint}    stopOpacity={Math.min(0.6, 0.14 * strength)} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width={w} height={h} fill={`url(#${id})`} />
+        </>
+      )}
+    />
   );
 }
 
@@ -109,18 +139,22 @@ export function PulseDot({ color = COLORS.gold2, size = 6 }) {
 // Horizontal hairline that fades out to the right.
 export function FadeLine({ color, style }) {
   color = color || COLORS.gold2;
-  const id = `fade-${color.replace('#', '')}`;
+  const id = useGradId('fade');
   return (
     <View style={[{ height: 1 }, style]}>
-      <Svg width="100%" height="1">
-        <Defs>
-          <LinearGradient id={id} x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor={color} stopOpacity="0.55" />
-            <Stop offset="1" stopColor={color} stopOpacity="0" />
-          </LinearGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100%" height="1" fill={`url(#${id})`} />
-      </Svg>
+      <SvgFill
+        render={(w, h) => (
+          <>
+            <Defs>
+              <LinearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0" stopColor={color} stopOpacity="0.55" />
+                <Stop offset="1" stopColor={color} stopOpacity="0" />
+              </LinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width={w} height={h} fill={`url(#${id})`} />
+          </>
+        )}
+      />
     </View>
   );
 }
@@ -134,6 +168,7 @@ export function GlassButton({
   label, icon, iconColor, onPress, variant = 'glass', tint = '#e8b82a', style, textStyle,
 }) {
   const primary = variant === 'primary';
+  const goldId = useGradId('btngold');
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -149,16 +184,20 @@ export function GlassButton({
         ]}
       >
         {primary ? (
-          <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
-            <Defs>
-              <LinearGradient id="btn-gold" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#fde68a" />
-                <Stop offset="0.55" stopColor="#e8b82a" />
-                <Stop offset="1" stopColor="#c8920f" />
-              </LinearGradient>
-            </Defs>
-            <Rect x="0" y="0" width="100%" height="100%" fill="url(#btn-gold)" />
-          </Svg>
+          <SvgFill
+            render={(w, h) => (
+              <>
+                <Defs>
+                  <LinearGradient id={goldId} x1="0" y1="0" x2="1" y2="1">
+                    <Stop offset="0" stopColor="#fde68a" />
+                    <Stop offset="0.55" stopColor="#e8b82a" />
+                    <Stop offset="1" stopColor="#c8920f" />
+                  </LinearGradient>
+                </Defs>
+                <Rect x="0" y="0" width={w} height={h} fill={`url(#${goldId})`} />
+              </>
+            )}
+          />
         ) : (
           <View pointerEvents="none" style={[g.topEdge, { left: 10, right: 10 }]} />
         )}

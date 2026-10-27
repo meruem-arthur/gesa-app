@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { COLORS } from '../constants/theme';
+import { SvgFill } from './Glass';
 
 // Soft, blurred "mesh gradient" glow that sits behind a screen header
 // (absolute-fills its parent; the header's content is drawn on top of it).
@@ -22,18 +22,22 @@ export default function HeroMesh() {
   const key = COLORS.isDark ? 'dark' : 'light';
   const blobs = BLOBS[key];
   return (
-    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
-      <Defs>
-        {blobs.map((b, i) => (
-          <RadialGradient key={i} id={`mesh-${key}-${i}`} cx={b.cx} cy={b.cy} rx={b.rx} ry={b.ry}>
-            <Stop offset="0" stopColor={b.c} stopOpacity={b.o} />
-            <Stop offset="1" stopColor={b.c} stopOpacity="0" />
-          </RadialGradient>
-        ))}
-      </Defs>
-      {blobs.map((b, i) => (
-        <Rect key={i} x="0" y="0" width="100%" height="100%" fill={`url(#mesh-${key}-${i})`} />
-      ))}
-    </Svg>
+    <SvgFill
+      render={(w, h) => (
+        <>
+          <Defs>
+            {blobs.map((b, i) => (
+              <RadialGradient key={i} id={`mesh-${key}-${i}`} cx={b.cx} cy={b.cy} rx={b.rx} ry={b.ry}>
+                <Stop offset="0" stopColor={b.c} stopOpacity={b.o} />
+                <Stop offset="1" stopColor={b.c} stopOpacity="0" />
+              </RadialGradient>
+            ))}
+          </Defs>
+          {blobs.map((b, i) => (
+            <Rect key={i} x="0" y="0" width={w} height={h} fill={`url(#mesh-${key}-${i})`} />
+          ))}
+        </>
+      )}
+    />
   );
 }

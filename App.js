@@ -7,6 +7,7 @@ import { Platform, Alert } from 'react-native'
 import AppNavigator from './src/navigation/AppNavigator'
 import { ThemeProvider, useTheme } from './src/constants/ThemeContext'
 import { saveExpoPushToken } from './src/hooks/useFirestore'
+import { requestScreen } from './src/navigation/notificationNav'
 
 // ─── Show notifications when app is foregrounded ──────────────────────────────
 Notifications.setNotificationHandler({
@@ -68,9 +69,32 @@ function ThemedStatusBar() {
   return <StatusBar style={isDark ? 'light' : 'dark'} />
 }
 
+// ─── Open the right screen when a notification is tapped ──────────────────────
+const handledTaps = new Set()
+function handleNotificationTap(response) {
+  if (!response) return
+  const id = response.notification?.request?.identifier
+  if (id) {
+    if (handledTaps.has(id)) return
+    handledTaps.add(id)
+  }
+  const screen = response.notification?.request?.content?.data?.screen
+  if (screen) requestScreen(screen)
+}
+
 export default function App() {
   useEffect(() => {
     registerPushToken()
+
+    // Tap while the app is open or in the background
+    const sub = Notifications.addNotificationResponseReceivedListener(handleNotificationTap)
+
+    // Tap that launched the app from a fully closed state
+    Notifications.getLastNotificationResponseAsync()
+      .then(handleNotificationTap)
+      .catch(() => {})
+
+    return () => sub.remove()
   }, [])
 
   return (

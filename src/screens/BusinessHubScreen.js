@@ -8,7 +8,7 @@ import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { COLORS, RADIUS, SPACING, GLASS, themed } from '../constants/theme';
 import { useBusinesses, useSiteContent } from '../hooks/useFirestore';
 import { Loader, ErrorState, OfflineBanner, appRefreshControl } from '../components/SharedComponents';
-import { GlassCard, GlassButton } from '../components/Glass';
+import { GlassCard, GlassButton, SvgFill } from '../components/Glass';
 import HeroMesh from '../components/HeroMesh';
 
 const S = SPACING;
@@ -91,16 +91,20 @@ function Glow({ uri }) {
   return (
     <View pointerEvents="none" style={styles.glow}>
       <Image source={{ uri }} style={styles.glowImg} resizeMode="cover" blurRadius={30} />
-      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-        <Defs>
-          <LinearGradient id="glowFade" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={COLORS.bg} stopOpacity="0.5" />
-            <Stop offset="0.6" stopColor={COLORS.bg} stopOpacity="0.8" />
-            <Stop offset="1" stopColor={COLORS.bg} stopOpacity="1" />
-          </LinearGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100%" height="100%" fill="url(#glowFade)" />
-      </Svg>
+      <SvgFill
+        render={(w, h) => (
+          <>
+            <Defs>
+              <LinearGradient id="glowFade" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor={COLORS.bg} stopOpacity="0.5" />
+                <Stop offset="0.6" stopColor={COLORS.bg} stopOpacity="0.8" />
+                <Stop offset="1" stopColor={COLORS.bg} stopOpacity="1" />
+              </LinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width={w} height={h} fill="url(#glowFade)" />
+          </>
+        )}
+      />
     </View>
   );
 }

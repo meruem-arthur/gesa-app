@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, RADIUS, SPACING, themed } from '../constants/theme';
 import { useTheme } from '../constants/ThemeContext';
+import { subscribeToScreenRequests } from './notificationNav';
 
 import HomeScreen            from '../screens/HomeScreen';
 import AnnouncementsScreen   from '../screens/AnnouncementsScreen';
@@ -261,6 +262,17 @@ function AppLayout() {
     const found = allScreens.find(t => t.name === name);
     if (found) setActiveTab(name);
   }, [allScreens]);
+
+  // A tapped push notification asks for a screen: switch to it (and close the sidebar).
+  // Also delivers a tap that arrived before this layout mounted (app opened from closed).
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
+  React.useEffect(() => {
+    return subscribeToScreenRequests(name => {
+      navigateRef.current(name);
+      setSidebarOpen(false);
+    });
+  }, []);
 
   const fakeNavigation = {
     navigate,
